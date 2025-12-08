@@ -1,0 +1,132 @@
+/* SIGNUP SIGNIN Sayfası */
+/* --- GENEL AYARLAR --- */
+:root {
+    --ana-renk: #1e3a8a;       /* Koyu Lacivert */
+    --vurgu-renk: #3b82f6;     /* Parlak Mavi */
+    --arka-plan: #f1f5f9;
+}
+
+body {
+    background-color: var(--arka-plan);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden; /* Scroll oluşmasını engelle */
+}
+
+/* --- 3D KART YAPISI (SIHİR BURADA) --- */
+.scene {
+    width: 400px;
+    height: 550px;
+    perspective: 1000px; /* 3D derinlik hissi */
+}
+
+.card-3d-wrapper {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Yaylanma efekti */
+}
+
+/* Kartın Ön ve Arka Yüzü */
+.card-face {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    -webkit-backface-visibility: hidden; /* Arka yüzü gizle */
+    backface-visibility: hidden;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    background-color: white;
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Arka Yüzü (Kayıt Ol) Döndür */
+.card-back {
+    transform: rotateY(180deg);
+}
+
+/* --- DÖNDÜRME SINIFI (JS ile Eklenecek) --- */
+.card-3d-wrapper.is-flipped {
+    transform: rotateY(180deg);
+}
+
+/* --- İÇERİK TASARIMI --- */
+.brand-logo {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--ana-renk);
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.form-control {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+.form-control:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    border-color: var(--vurgu-renk);
+}
+
+.btn-primary {
+    background-color: var(--ana-renk);
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    width: 100%;
+    margin-top: 10px;
+    transition: 0.3s;
+}
+.btn-primary:hover {
+    background-color: #172554;
+    transform: translateY(-2px);
+}
+
+/* --- KAYAN GEÇİŞ BUTONLARI --- */
+.switch-wrap {
+    position: absolute;
+    top: -60px; /* Kartın üstüne koy */
+    left: 0;
+    right: 0;
+    text-align: center;
+    z-index: 10;
+}
+.switch-btn {
+    background: rgba(255,255,255,0.5);
+    border: none;
+    padding: 8px 20px;
+    border-radius: 30px;
+    font-weight: 600;
+    color: var(--ana-renk);
+    cursor: pointer;
+    margin: 0 5px;
+    transition: 0.3s;
+}
+.switch-btn.active {
+    background-color: var(--ana-renk);
+    color: white;
+    box-shadow: 0 4px 10px rgba(30, 58, 138, 0.3);
+}
+
+/* Arka plan süsü */
+.bg-shape {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    background: linear-gradient(135deg, var(--ana-renk) 0%, var(--vurgu-renk) 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 80%);
+}

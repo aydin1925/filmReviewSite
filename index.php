@@ -1,26 +1,30 @@
 <?php
+// =================================================================
+// 🛠️ GELİŞTİRME ALANI (BURAYI SEN DOLDURACAKSIN)
+// =================================================================
 
-$movies = [
-    [
-        "title" => "Matrix",
-        "director" => "Wachowski Kardeşler",
-        "category" => "Bilim Kurgu",
-        "image" => "https://image.tmdb.org/t/p/w500/f89U3ADr1oiB1s9GkdPOEpXUk5H.jpg"
-    ],
-    [
-        "title" => "Esaretin Bedeli",
-        "director" => "Frank Darabont",
-        "category" => "Dram",
-        "image" => "https://image.tmdb.org/t/p/w500/q6y0Go1tsGEsmtFryDOJo3dEmqu.jpg"
-    ],
-    [
-        "title" => "Kara Şövalye",
-        "director" => "Christopher Nolan",
-        "category" => "Aksiyon",
-        "image" => "https://image.tmdb.org/t/p/w500/qJ2tW6WMUDux911r6m7haRef0WH.jpg"
-    ]
+// ŞU AN: Sayfa boş görünmesin diye "Vizyondakiler" ve "Yakında" için sahte veriler var.
+// SENİN GÖREVİN: Bu dizileri silip, yerine DB bağlantısını ve SQL sorgularını yazmak.
+
+// 1. Vizyondakiler Listesi (Mock Data)
+$vizyondakiler = [
+    ["movie_id" => 1, "title" => "Oppenheimer", "category" => "Biyografi", "image_url" => "https://image.tmdb.org/t/p/w500/8Gxv8gSFCU0XGDykEGv7zR1n2ua.jpg"],
+    ["movie_id" => 2, "title" => "Barbie", "category" => "Komedi", "image_url" => "https://image.tmdb.org/t/p/w500/iuFNMS8U5cb6xfzi51Dbkovj7vM.jpg"],
+    ["movie_id" => 3, "title" => "John Wick 4", "category" => "Aksiyon", "image_url" => "https://image.tmdb.org/t/p/w500/vZloFAK7NmvMGKE7VkF5UHaz0I.jpg"],
+    ["movie_id" => 4, "title" => "Örümcek Adam", "category" => "Animasyon", "image_url" => "https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg"],
+    ["movie_id" => 5, "title" => "Avatar 2", "category" => "Bilim Kurgu", "image_url" => "https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg"],
+    ["movie_id" => 6, "title" => "Hızlı ve Öfkeli 10", "category" => "Suç", "image_url" => "https://image.tmdb.org/t/p/w500/fiVW06jE7z9YnO4trhaMEdclSiC.jpg"]
 ];
 
+// 2. Yakında Gelecekler Listesi (Mock Data)
+$yakindakiler = [
+    ["movie_id" => 7, "title" => "Dune: Çöl Gezegeni 2", "category" => "Bilim Kurgu", "image_url" => "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg"],
+    ["movie_id" => 8, "title" => "Deadpool 3", "category" => "Aksiyon", "image_url" => "https://image.tmdb.org/t/p/w500/yF1eOkaYvwiORauRCPWznV9xVvi.jpg"]
+];
+
+// =================================================================
+// 🎨 HTML ARAYÜZ (BURASI SABİT KALACAK)
+// =================================================================
 ?>
 
 <!DOCTYPE html>
@@ -28,89 +32,155 @@ $movies = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FilmFlux</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <style>
-        .card-img-top {
-            height: 350px;
-            object-fit: cover;
-        }
-        .card {
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: scale(1.02s);
-        }
-    </style>
-</head>
-<body class="bg-light">
+    <title>FilmFlux - Sinema Veritabanı</title>
     
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-5">
-        <div class="container">
-            <a href="#" class="navbar-brand fw-bold">🎬 FilmFlux</a>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- İkonlar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Özel CSS Dosyamız -->
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="custom-navbar">
+        <div class="container d-flex align-items-center justify-content-between">
+            <!-- Logo -->
+            <a class="navbar-brand" href="index.php">
+                <i class="fas fa-play-circle me-2 text-info"></i>FilmFlux
+            </a>
+            
+            <!-- Arama Kutusu -->
+            <div class="d-none d-md-block w-50">
+                <form action="index.php" method="GET" class="position-relative">
+                    <input type="text" name="q" class="form-control search-input" placeholder="Film, yönetmen veya oyuncu ara...">
+                    <button type="submit" class="btn position-absolute top-0 end-0 text-white"><i class="fas fa-search"></i></button>
+                </form>
+            </div>
+
+            <!-- Sağ Taraf: Giriş / Kayıt -->
+            <div class="d-flex align-items-center gap-2">
+                <!-- Şimdilik sadece butonlar var. İlerde PHP ile SESSION kontrolü buraya gelecek -->
+                <a href="login.php" class="btn btn-sm btn-outline-light px-3 rounded-pill">Giriş Yap</a>
+                <a href="register.php" class="btn btn-sm btn-light px-3 rounded-pill text-primary fw-bold">Kayıt Ol</a>
+            </div>
         </div>
     </nav>
 
-    <div class="container">
-        <!-- Başlık -->
-        <div class="row mb-4">
-            <div class="col-12 text-center">
-                <h1 class="display-6 fw-bold">Vizyondaki Filmler</h1>
-                <p class="text-muted">Manuel Veri Testi Aşaması</p>
-            </div>
+    <!-- ALT MENÜ -->
+    <div class="sub-menu">
+        <div class="container d-flex overflow-auto">
+            <a href="#"><i class="fas fa-film me-1"></i> Sinema Filmleri</a>
+            <a href="#"><i class="fas fa-tv me-1"></i> Platform Filmleri</a>
+            <a href="#"><i class="fas fa-clock me-1"></i> Son Çıkanlar</a>
+            <a href="#"><i class="fas fa-fire me-1"></i> Haftanın Popülerleri</a>
+            <a href="#"><i class="fas fa-layer-group me-1"></i> Tüm Filmler</a>
         </div>
-    
-        <!-- Film Listesi -->
-        <div class="row">
+    </div>
 
-            <?php
-            // Veritabanındaki her film için aşağıda yazacağım HTML kodu çalışacak
-            foreach($movies as $movie):
-            ?>
-
-                <!-- 
-                   col-md-4: Orta ve büyük ekranlarda 3'lü yan yana (12/4 = 3)
-                   col-sm-6: Tablette 2'li yan yana (12/6 = 2)
-                   col-12: Telefonda tekli (Tam genişlik)
-                -->
-
-                <!-- Bir tane şablon film  kutusu hazırlıyorum -->
-                 <div class="col-12 col-sm-6 col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <!-- PHP'den image linkini alıp buraya ekliyorum -->
-                         <img src="<?php echo $movie['image']; ?>" class="card-img-top" alt="<?php echo $movie['title']; ?>">
-
-                         <div class="card-body d-flex flex-column">
-                            <!-- Filmin ismini ekrana getir -->
-                             <h5 class="card-title fw-bold"><?php echo $movie['title']; ?></h5>
-
-                            <div class="mb-3">
-                                <span class="badge bg-primary"><?php echo $movie['category']; ?></span>
+    <!-- ANA İÇERİK -->
+    <div class="container pb-5" style="min-height: 600px;">
+        
+        <!-- BÖLÜM 1: VİZYONDAKİLER -->
+        <h2 class="section-title">
+            Vizyondaki Filmler 
+            <a href="#" class="btn btn-outline-primary btn-sm rounded-pill px-3" style="font-size: 12px;">Tümünü Gör</a>
+        </h2>
+        
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+            <?php if(empty($vizyondakiler)): ?>
+                <div class="col-12"><p class="text-muted">Henüz film eklenmemiş.</p></div>
+            <?php else: ?>
+                <?php foreach($vizyondakiler as $movie): ?>
+                <div class="col">
+                    <a href="detay.php?id=<?php echo $movie['movie_id']; ?>" class="text-decoration-none">
+                        <div class="movie-card">
+                            <div class="movie-poster">
+                                <img src="<?php echo $movie['image_url']; ?>" alt="<?php echo htmlspecialchars($movie['title']); ?>">
                             </div>
+                            <div class="movie-title"><?php echo htmlspecialchars($movie['title']); ?></div>
+                            <div class="movie-info"><?php echo htmlspecialchars($movie['category']); ?></div>
+                        </div>
+                    </a>
+                </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
 
-                             <!-- Yönetmen ve kategoriyi ekrana getir -->
-                              <p class="card-text text-muted small">
-                                <strong>Yönetmen:</strong> <?php echo $movie['director']; ?> <br>
-                              </p>
-
-                              <!-- mt-auto: Butonu her zaman en alta iter -->
-                              <button class="btn btn-dark w-100 mt-auto">Detayları Gör</button>
-                         </div>
-                    </div>
-                 </div>
-            
-            <?php
-            // Döngüyü bitir.
-            endforeach;
-            ?>
-
+        <!-- BÖLÜM 2: YAKINDA SİNEMALARDA -->
+        <h2 class="section-title mt-5">
+            Yakında Sinemalarda
+            <span class="badge bg-danger rounded-pill fs-6 ms-2">Yeni</span>
+        </h2>
+        
+        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+            <?php if(empty($yakindakiler)): ?>
+                <div class="col-12"><p class="text-muted">Yakında gelecek film bulunamadı.</p></div>
+            <?php else: ?>
+                <?php foreach($yakindakiler as $movie): ?>
+                <div class="col">
+                    <!-- Tıklayınca uyarı veren Yakında filmleri -->
+                    <a href="#" onclick="alert('Bu film yakında vizyona girecek!'); return false;" class="text-decoration-none">
+                        <div class="movie-card opacity-75"> 
+                            <div class="movie-poster">
+                                <img src="<?php echo $movie['image_url']; ?>" alt="<?php echo htmlspecialchars($movie['title']); ?>">
+                                <!-- Yakında Etiketi -->
+                                <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 small rounded-start" style="font-size: 10px;">YAKINDA</div>
+                            </div>
+                            <div class="movie-title"><?php echo htmlspecialchars($movie['title']); ?></div>
+                            <div class="movie-info text-danger">Tarih Bekleniyor</div>
+                        </div>
+                    </a>
+                </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
         </div>
 
     </div>
-    
-    <!-- Bootstrap JS (Opsiyonel: Açılır menüler için gerekli) -->
+
+    <!-- COMPACT FOOTER -->
+    <footer>
+        <div class="container">
+            <div class="row justify-content-between">
+                
+                <!-- Marka -->
+                <div class="col-md-5 mb-3">
+                    <h5 class="text-white"><i class="fas fa-play-circle me-2 text-primary"></i>FilmFlux</h5>
+                    <p class="small text-secondary mb-3">
+                        Sinema dünyasının nabzını tutan modern veri tabanı platformu. 
+                    </p>
+                </div>
+
+                <!-- Linkler -->
+                <div class="col-md-3 mb-3">
+                    <h5>Hızlı Erişim</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="index.php">Anasayfa</a></li>
+                        <li><a href="#">Vizyondakiler</a></li>
+                    </ul>
+                </div>
+
+                <!-- Sosyal -->
+                <div class="col-md-3 mb-3">
+                    <h5>Takip Et</h5>
+                    <div class="d-flex">
+                        <a href="#" class="social-icon bg-instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="social-icon bg-linkedin"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-icon bg-mail"><i class="fas fa-envelope"></i></a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="copyright text-center">
+            <p class="mb-0 text-secondary small">
+                &copy; 2025 <strong>FilmFlux</strong>. Tasarım: <span class="text-white">Aydın ŞAHİN</span>
+            </p>
+        </div>
+    </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
