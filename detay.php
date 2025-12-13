@@ -1,28 +1,73 @@
 <?php
-// ========================================================
-// 🛠️ MOCK DATA (Veritabanı Yerine Geçici Veri)
-// ========================================================
-// Sen veritabanı bağlantısını yapana kadar sayfa bu verilerle çalışacak.
-// Bağlantıyı kurduğunda bu diziyi silip yerine SQL sorgusu yazacaksın.
 
-$film = [
-    "movie_id" => 7,
-    "title" => "Dune: Çöl Gezegeni Bölüm İki",
-    "description" => "Paul Atreides, ailesini yok eden komploculara karşı intikam savaşına girerken Chani ve Fremenlerle güçlerini birleştirir. Hayatının aşkı ile bilinen evrenin kaderi arasında bir seçim yapmak zorunda kalan Paul, yalnızca kendisinin öngörebileceği korkunç bir geleceği engellemeye çalışır.",
-    "director" => "Denis Villeneuve",
-    "release_year" => 2024,
-    "category" => "Bilim Kurgu, Macera",
-    "image_url" => "https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg",
-    "bg_image" => "https://image.tmdb.org/t/p/original/xOMo8BRK7PfcJv9JCnx7s5hj0PX.jpg",
-    "rating" => 8.8,
-    "cast" => "Timothée Chalamet, Zendaya, Rebecca Ferguson, Javier Bardem"
-];
+// oturum kontrolü yapıyorum
+session_start();
 
-// Yorumlar da şimdilik sahte
-$yorumlar = [
-    ["user" => "Ahmet Y.", "comment" => "Nolan yine yapmış yapacağını. Ses tasarımı inanılmazdı.", "date" => "12.10.2023"],
-    ["user" => "Zeynep K.", "comment" => "Biraz uzundu ama her dakikasına değdi. Oyunculuklar muazzam.", "date" => "15.10.2023"]
-];
+// veritabanını çağırıyorum
+require_once 'config/db.php';
+
+if(isset($_GET['id'])) {
+    
+    $movie_id = intval($_GET['id']);
+
+    try {
+
+        $sql = $db->prepare("SELECT * FROM movies WHERE movie_id = :id");
+        $sql->execute(['id' => $movie_id]);
+
+        // veritabanında belirlediğim veriyi çekiyorum
+        // bu yazdığım kod çektiği veriyi 'film' adında bir diziye atıyor
+        $film = $sql->fetch(PDO::FETCH_ASSOC);
+
+        // film geldi mi diye kontrol ediyorum
+        if(!$film) {
+            // film yoksa anasayfaya geri gönderiyorum
+            show_result("Aradığınız film bulunamadı veya kaldırılmış.", "error", "index.php");
+        }
+
+        // oyuncu değişkenlerini tutmak için bir dizi oluşturuyorum
+        $oyuncu_listesi = [];
+
+        if(!empty($film['cast'])) {
+            $oyuncu_listesi = explode(', ', $film['cast']);
+        }
+
+        $yorumlar = [];
+
+        $yorumlar_sql = $db->prepare("SELECT reviews.*, users.username FROM reviews JOIN users ON reviews.user_id = users.user_id WHERE reviews.movie_id = :id ORDER BY reviews.created_at DESC");
+        $yorumlar_sql->execute(['id' => $movie_id]);
+
+        $yorumlar = $yorumlar_sql->fetchAll(PDO::FETCH_ASSOC);
+
+        // filmin ortalama puanını hesaplama
+        $puan_sql = $db->prepare("SELECT AVG(rating) as ortalama FROM reviews WHERE movie_id = :id");
+        $puan_sql->execute(['id' => $movie_id]);
+
+        $puan_veri = $puan_sql->fetch(PDO::FETCH_ASSOC);
+
+        // virgülden sonra 1 basamak göstermesi için
+        if($puan_veri['ortalama']) {
+            $film_puani = number_format($puan_veri['ortalama'], 1);
+        }
+        else {
+            $film_puani = '-';
+        }
+
+        // 4. BENZER FİLMLERİ ÇEK (Aynı kategoriden, şu anki film hariç 4 tane)
+        $sql_benzer = "SELECT * FROM movies WHERE category = :cat AND movie_id != :id LIMIT 4";
+        $stmt_benzer = $db->prepare($sql_benzer);
+        $stmt_benzer->execute(['cat' => $film['category'], 'id' => $movie_id]);
+        $benzer_filmler = $stmt_benzer->fetchAll(PDO::FETCH_ASSOC);
+
+    }
+    catch(PDOException $e) {
+        show_result("Sistem Hatası: " . $e->getMessage(), "error");
+    }
+}
+else {
+    show_result("Geçersiz film ID'si.", "error", "index.php");
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -62,7 +107,7 @@ $yorumlar = [
 
     <!-- 1. BÖLÜM: HERO ALANI (Bulanık Arka Planlı Bölüm) -->
     <!-- Dinamik arka plan resmi PHP'den geliyor -->
-    <div class="movie-hero" style="background-image: url('<?php echo $film['bg_image']; ?>');">
+    <div class="movie-hero" style="background-image: url('<?php echo $film['image_url']; ?>');">
         <div class="container">
             <div class="row align-items-start">
                 
@@ -88,13 +133,20 @@ $yorumlar = [
                             <div class="mb-3">
                                 <span class="movie-meta-badge"><i class="far fa-calendar me-1"></i> <?php echo $film['release_year']; ?></span>
                                 <span class="movie-meta-badge"><i class="fas fa-film me-1"></i> <?php echo $film['category']; ?></span>
-                                <span class="movie-meta-badge"><i class="far fa-clock me-1"></i> 180 dk</span>
+                                <span class="movie-meta-badge">
+                                    <i class="far fa-clock me-1"></i>
+                                    <?php 
+                                    $saat = floor($film['duration'] / 60); 
+                                    $dakika = $film['duration'] % 60;
+                                    echo "{$saat}s {$dakika}dk"; 
+                                    ?>
+                                </span>
                             </div>
                         </div>
                         
                         <!-- Puan Kutusu (CSS ile tasarladığımız) -->
                         <div class="rating-box">
-                            <span class="rating-score"><?php echo $film['rating']; ?></span>
+                            <span class="rating-score"><?php echo $film_puani; ?></span>
                             <span class="rating-max">/10</span>
                         </div>
                     </div>
@@ -113,7 +165,15 @@ $yorumlar = [
                     <!-- Oyuncular -->
                     <div class="mt-3">
                         <h6 class="text-uppercase text-white-50" style="font-size: 12px; letter-spacing: 1px;">Oyuncular</h6>
-                        <span class="text-white-50"><?php echo $film['cast']; ?></span>
+                        <span class="text-white-50">
+                        <?php 
+                        // Dizi elemanlarını aralarına ' • ' koyerek birleştirip yazdırır
+                        // Örn: Brad Pitt • Edward Norton
+                        if (!empty($oyuncu_listesi)) {
+                            echo implode(' • ', $oyuncu_listesi);
+                        }
+                        ?>
+                        </span>
                     </div>
                 </div>
 
@@ -132,10 +192,48 @@ $yorumlar = [
                 <!-- Yorum Yazma Formu -->
                 <div class="card border-0 shadow-sm mb-4 p-3 bg-white">
                     <h6 class="mb-3 text-dark">Senin Düşüncen Ne?</h6>
-                    <textarea class="form-control mb-2 bg-light border-0" rows="3" placeholder="Bu film hakkında ne düşünüyorsun?"></textarea>
-                    <div class="text-end">
-                        <button class="btn btn-dark px-4">Yorumu Gönder</button>
-                    </div>
+                    
+                    <!-- FORM ETİKETİNİ AÇIYORUZ -->
+                    <form action="submit_review.php" method="POST">
+                        
+                        <!-- 1. GİZLİ VERİ: Hangi filme yorum yapıyoruz? -->
+                        <!-- Kullanıcı görmez ama arka plana movie_id göndeririz -->
+                        <input type="hidden" name="movie_id" value="<?php echo $film['movie_id']; ?>">
+
+                        <!-- 2. PUAN SEÇİMİ (Backend bunu bekliyor) -->
+                        <!-- PUAN SLIDER ALANI -->
+                        <div class="mb-3">
+                            
+                            <label for="ratingRange" class="form-label fw-bold text-dark d-flex justify-content-between align-items-center" style="max-width: 400px;">
+                                <span>Puanın:</span>
+                                <!-- Sabit genişlikli kapsayıcı -->
+                                <span class="badge bg-primary fs-6 fixed-rating-badge">
+                                    <span id="ratingValue">8.0</span>/10
+                                </span>
+                            </label>
+                            
+                            <div class="rating-container" style="width: 1000px;">
+                                <!-- SLIDER -->
+                                <input type="range" class="form-range custom-range flex-grow-1" 
+                                    name="rating" id="ratingRange" 
+                                    min="1" max="10" step="0.1" value="8.0" 
+                                    oninput="updateRating(this.value)"
+                                    style="max-width: 400px;"
+                                >
+                            </div>
+
+                        </div>
+
+                        <!-- 3. YORUM METNİ -->
+                        <!-- name="comment" ekledik -->
+                        <textarea name="comment" class="form-control mb-2 bg-light border-0" style="resize: none;" rows="3" placeholder="Bu film hakkında ne düşünüyorsun?" required></textarea>
+                        
+                        <!-- 4. GÖNDER BUTONU -->
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-dark px-4">Yorumu Gönder</button>
+                        </div>
+
+                    </form>
                 </div>
 
                 <!-- Yorum Listesi (Döngü ile basıyoruz) -->
@@ -143,9 +241,9 @@ $yorumlar = [
                 <div class="comment-card">
                     <div class="d-flex justify-content-between">
                         <div class="comment-user">
-                            <i class="fas fa-user-circle me-2 text-secondary"></i><?php echo $y['user']; ?>
+                            <i class="fas fa-user-circle me-2 text-secondary"></i><?php echo $y['username']; ?>
                         </div>
-                        <div class="comment-date"><?php echo $y['date']; ?></div>
+                        <div class="comment-date"><?php echo $y['created_at']; ?></div>
                     </div>
                     <p class="mb-0 text-muted small mt-2"><?php echo $y['comment']; ?></p>
                 </div>
@@ -158,22 +256,22 @@ $yorumlar = [
                 <h4 class="h5 mb-3 fw-bold text-dark">Bunları da Sevebilirsin</h4>
                 
                 <div class="list-group">
-                    <!-- Örnek Statik Yan Liste -->
-                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center border-0 mb-2 shadow-sm rounded">
-                        <img src="https://image.tmdb.org/t/p/w200/gEU2QniL6C8z1dY4kdNON4k6sKs.jpg" class="rounded me-3" width="50" height="75" style="object-fit:cover;">
-                        <div>
-                            <h6 class="mb-0 text-dark" style="font-size: 14px;">Interstellar</h6>
-                            <small class="text-muted">Bilim Kurgu</small>
-                        </div>
-                    </a>
-                    
-                    <a href="#" class="list-group-item list-group-item-action d-flex align-items-center border-0 mb-2 shadow-sm rounded">
-                        <img src="https://image.tmdb.org/t/p/w200/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg" class="rounded me-3" width="50" height="75" style="object-fit:cover;">
-                        <div>
-                            <h6 class="mb-0 text-dark" style="font-size: 14px;">Dune: Part Two</h6>
-                            <small class="text-muted">Bilim Kurgu</small>
-                        </div>
-                    </a>
+                    <?php if(empty($benzer_filmler)): ?>
+                        <p class="text-muted small">Benzer kategori bulunamadı.</p>
+                    <?php else: ?>
+                        <?php foreach($benzer_filmler as $benzer): ?>
+                        <a href="detay.php?id=<?php echo $benzer['movie_id']; ?>" class="list-group-item list-group-item-action d-flex align-items-center border-0 mb-2 shadow-sm rounded">
+                            <img src="<?php echo $benzer['image_url']; ?>" class="rounded me-3" width="50" height="75" style="object-fit:cover;">
+                            <div class="w-100">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h6 class="mb-0 text-dark text-truncate" style="max-width: 150px; font-size: 14px;"><?php echo htmlspecialchars($benzer['title']); ?></h6>
+                                    <!-- Eğer benzer filmin puanı yoksa gösterme -->
+                                </div>
+                                <small class="text-muted"><?php echo htmlspecialchars($benzer['category']); ?></small>
+                            </div>
+                        </a>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
                 </div>
             </div>
 
@@ -189,5 +287,13 @@ $yorumlar = [
         </div>
     </footer>
 
+
+
+    <script>
+    function updateRating(val) {
+        // Sadece sayıyı güncelle (Ondalıklı formatta: 7.0 gibi)
+        document.getElementById('ratingValue').textContent = parseFloat(val).toFixed(1);
+    }
+</script>
 </body>
 </html>

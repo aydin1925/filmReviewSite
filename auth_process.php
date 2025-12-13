@@ -15,13 +15,8 @@ if(isset($_POST['username'])) {
     $password = $_POST['password'];
 
     if(empty($username) || empty($email) || empty($password)) {
-        die("Hata: Tüm alanları doldurduğunuzdan emin olun!");
+        show_result("Lütfen tüm alanları eksiksiz doldurun!", "error");
     }
-
-    // if(strlen($password) < 6) {
-    //     echo "<script>alert('Şifreniz en az 6 karakter olmalıdır!'); window.history.back();</script>";
-    //     exit;
-    // } 
 
     try {
         // girilen username veya maile sahip bir kullanıcı var mı diye kontrol ediyorum
@@ -30,20 +25,19 @@ if(isset($_POST['username'])) {
 
         // istenen bilgilere sahip kaç satır bulundu?
         if($control->rowCount() > 0) {
-            echo "<script> alert('bu username ve/veya email zaten kullanılıyor, başka bir username/email deneyin'); window.location.href='login_register.php'; </script>";
-            exit;
+            show_result("Bu kullanıcı adı veya e-posta zaten kullanılıyor!", "error", "login_register.php");
         }
 
         // Güvenlik açıklarını engellemek için şifreyi hash'liyorum
         $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
         // Veritabanına bilgileri kaydediyorum
-        $sql = "INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'user')";
-        $stmt = $db->prepare($sql);
+        $sql = $db->prepare("INSERT INTO users (username, email, password, role) VALUES (:username, :email, :password, 'user')");
+         
 
 
         // Hazırladığım sql'e gerçek verileri ekliyorum
-        $sonuc = $stmt->execute([
+        $sonuc = $sql->execute([
             'username' => $username,
             'email' => $email,
             'password' => $password_hash
@@ -51,13 +45,12 @@ if(isset($_POST['username'])) {
 
         // Kayıt işlemi başarılı olursa
         if($sonuc) {
-            echo "<script>alert('Başarıyla kayıt oldunuz!'); window.location.href='login_register.php'; </script>";
-            exit;
+            show_result("Kayıt Başarılı! Şimdi giriş yapabilirsiniz.", "success", "login_register.php");
         }
 
     }
     catch(PDOException $e) {
-        die("Veritabanı hatası: " . $e->getMessage());
+        show_result("Veritabanı Hatası: " . $e->getMessage(), "error");
     }
 
 }
@@ -71,7 +64,7 @@ elseif(isset($_POST['login'])) {
 
     // Boş bırakılan bir yer var mı diye kontrol ediyorum
     if(empty($email) || empty($password)) {
-        die("Hata: Eposta ve şifre boş bırakılamaz!");
+        show_result("E-posta ve şifre boş bırakılamaz!", "error");
     }
 
     try {
@@ -95,17 +88,17 @@ elseif(isset($_POST['login'])) {
             $_SESSION['role'] = $user['role'];
 
             // Kullanıcıyı bilgilendirme ve yönlendirme işlemini yapıyorum
-            echo "<script> alert('Başarıyla giriş yaptınız!'); window.location.href='index.php'; </script>";
-            exit;
+            // Rol kontrolüne göre yönlendirme
+            $hedef = ($user['role'] === 'admin') ? 'admin.php' : 'index.php';
+            show_result("Giriş Başarılı! Yönlendiriliyorsunuz...", "success", $hedef);
         }
         else {
             // şifre yanlış ya da kullanıcı bulunamadı
-            echo "<script> alert('Eposta veya şifreyi yanlış girdiniz!'); window.location.href='login_register.php'; </script>";
-            exit;
+            show_result("Hatalı E-posta veya Şifre!", "error", "login_register.php");
         }
     }
     catch(PDOException $e) {
-        die("Sistem hatası: " . $e->getMessage());
+        show_result("Sistem Hatası: " . $e->getMessage(), "error");
     }
 }
 

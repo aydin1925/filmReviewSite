@@ -1,9 +1,16 @@
 <?php
 session_start();
 
-// 🛠️ GÜVENLİK KONTROLÜ (İLERİDE AÇILACAK)
-// Normalde buraya "Eğer giriş yapan kişi admin değilse anasayfaya at" kodu gelecek.
-// Şimdilik herkes girebilir.
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login_register.php");
+    exit;
+}
+
+// 2. Giriş yapmış ama ADMIN değilse
+if ($_SESSION['role'] !== 'admin') {
+    show_result("Bu sayfaya erişim yetkiniz yok! Ana sayfaya yönlendiriliyorsunuz...", "error", "index.php");
+}
 ?>
 
 <!DOCTYPE html>
