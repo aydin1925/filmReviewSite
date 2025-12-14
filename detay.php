@@ -82,7 +82,6 @@ else {
     <!-- İkonlar -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Senin Oluşturduğun Özel CSS Dosyası -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body>
@@ -100,7 +99,7 @@ else {
             </div>
 
             <div class="d-flex align-items-center">
-                <a href="#" class="nav-icon"><i class="far fa-user"></i></a>
+                <a href="profil.php" class="nav-icon"><i class="far fa-user"></i></a>
             </div>
         </div>
     </nav>
@@ -117,8 +116,13 @@ else {
                     
                     <!-- Aksiyon Butonları -->
                     <div class="mt-3 d-grid gap-2">
-                        <button class="btn btn-primary"><i class="fas fa-play me-2"></i>Fragman</button>
-                        <button class="btn btn-outline-light"><i class="fas fa-plus me-2"></i>Listeme Ekle</button>
+                        <a href="404.php" class="btn btn-primary">
+                            <i class="fas fa-play me-2"></i>Fragman
+                        </a>
+    
+                        <a href="404.php" class="btn btn-outline-light">
+                            <i class="fas fa-plus me-2"></i>Listeme Ekle
+                        </a>
                     </div>
                 </div>
 
@@ -237,17 +241,61 @@ else {
                 </div>
 
                 <!-- Yorum Listesi (Döngü ile basıyoruz) -->
-                <?php foreach($yorumlar as $y): ?>
-                <div class="comment-card">
-                    <div class="d-flex justify-content-between">
-                        <div class="comment-user">
-                            <i class="fas fa-user-circle me-2 text-secondary"></i><?php echo $y['username']; ?>
+                <?php if(empty($yorumlar)): ?>
+                    <p class="text-muted fst-italic text-center py-3">Henüz bu filme yorum yapılmamış. İlk yorumu sen yap!</p>
+                <?php else: ?>
+                    <?php foreach($yorumlar as $y): ?>
+                    
+                    <!-- KART: position-relative ekledik ki buton sağ üste yapışabilsin -->
+                    <div class="comment-card position-relative">
+                        
+                        <!-- 🛠️ İŞLEM BUTONLARI (Sadece Yetkili Görür) -->
+                        <?php 
+                        // Oturum açık mı? VE (Admin mi? VEYA Yorumun sahibi mi?)
+                        if (isset($_SESSION['user_id']) && 
+                           ($_SESSION['role'] === 'admin' || $_SESSION['user_id'] == $y['user_id'])): 
+                        ?>
+                            <div style="position: absolute; top: 15px; right: 15px; display:flex; gap:10px;">
+                                
+                                <!-- DÜZENLEME BUTONU (YENİ EKLENEN) -->
+                                <!-- Link: edit_review.php -->
+                                <a href="edit_review.php?id=<?php echo $y['review_id']; ?>" 
+                                   class="text-secondary text-decoration-none" 
+                                   title="Düzenle">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+
+                                <!-- SİLME BUTONU -->
+                                <a href="javascript:void(0);" 
+                                   class="text-secondary text-decoration-none" 
+                                   onclick="confirmDelete('delete_review.php?id=<?php echo $y['review_id']; ?>&movie_id=<?php echo $film['movie_id']; ?>')"
+                                   title="Sil">
+                                   <i class="fas fa-trash-alt"></i>
+                                </a>
+                            </div>
+                        <?php endif; ?>
+                        <!-- BUTON BİTİŞ -->
+
+                        <div class="d-flex justify-content-between">
+                            <div class="comment-user">
+                                <i class="fas fa-user-circle me-2 text-secondary"></i><?php echo htmlspecialchars($y['username']); ?>
+                            </div>
+                            <!-- Tarihi gün/ay/yıl olarak formatla -->
+                            <div class="comment-date"><?php echo date("d.m.Y", strtotime($y['created_at'])); ?></div>
                         </div>
-                        <div class="comment-date"><?php echo $y['created_at']; ?></div>
+                        
+                        <div class="mb-2">
+                            <?php if($y['rating'] > 0): ?>
+                                <span class="badge bg-warning text-dark"><i class="fas fa-star me-1"></i><?php echo $y['rating']; ?></span>
+                            <?php else: ?>
+                                <span class="badge bg-light text-secondary border"><i class="far fa-comment me-1"></i>Sadece Yorum</span>
+                            <?php endif; ?>
+                        </div>
+                        
+                        <p class="mb-0 text-muted small"><?php echo htmlspecialchars($y['comment']); ?></p>
                     </div>
-                    <p class="mb-0 text-muted small mt-2"><?php echo $y['comment']; ?></p>
-                </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                <?php endif; ?>
 
             </div>
 
@@ -287,13 +335,16 @@ else {
         </div>
     </footer>
 
-
-
     <script>
     function updateRating(val) {
         // Sadece sayıyı güncelle (Ondalıklı formatta: 7.0 gibi)
         document.getElementById('ratingValue').textContent = parseFloat(val).toFixed(1);
     }
-</script>
+    </script>
+    
+    <!-- JS DOSYALARI -->
+    <script src="assets/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
 </body>
 </html>

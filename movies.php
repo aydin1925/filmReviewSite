@@ -1,34 +1,22 @@
 <?php
-
-// oturum kontrolü yapıyorum
-// session_status kontrolü db.php içinde de var ama burada da olması zarar vermez
+// Oturumu başlat
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// veritabanını çağırıyorum
+// Veritabanı bağlantısı
 require_once 'config/db.php';
 
-$vizyondakiler = [];
-$yakindakiler = [];
-
+// Tüm filmleri çekiyoruz (En son eklenen en başta)
 try {
-
-    $vizyon_sql = $db->prepare("SELECT * FROM movies WHERE status = 1 ORDER BY movie_id DESC LIMIT 6");
-    $vizyon_sql->execute();
-
-    $vizyondakiler= $vizyon_sql->fetchAll(PDO::FETCH_ASSOC);
-
-    $yakin_sql = $db->prepare("SELECT * FROM movies WHERE status = 0 ORDER BY movie_id DESC LIMIT 6");
-    $yakin_sql->execute();
-
-    $yakindakiler = $yakin_sql->fetchAll(PDO::FETCH_ASSOC);
+    // Sadece status durumuna bakmadan hepsini çekiyoruz
+    $sql = $db->prepare("SELECT * FROM movies ORDER BY movie_id DESC");
+    $sql->execute();
+    $all_movies = $sql->fetchAll(PDO::FETCH_ASSOC);
 }
 catch(PDOException $e) {
     die("Hata: " . $e->getMessage());
 }
-
-
 ?>
 
 <!DOCTYPE html>
@@ -36,7 +24,7 @@ catch(PDOException $e) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FilmFlux - Sinema Veritabanı</title>
+    <title>Tüm Filmler - FilmFlux</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -56,7 +44,6 @@ catch(PDOException $e) {
                 <form action="search.php" method="GET" class="position-relative">
                     <input type="text" name="q" id="search_text" class="form-control search-input" placeholder="Film, yönetmen veya oyuncu ara...">
                     <button type="submit" class="btn position-absolute top-0 end-0 text-white"><i class="fas fa-search"></i></button>
-
                     <div id="show-list" class="list-group position-absolute w-100 shadow" style="z-index: 1000; top: 100%;"></div>
                 </form>
             </div>
@@ -84,36 +71,32 @@ catch(PDOException $e) {
         </div>
     </nav>
 
-    <div class="sub-menu">
-        <div class="container d-flex overflow-auto">
-            <a href="404.php"><i class="fas fa-film me-1"></i> Sinema Filmleri</a>
-            <a href="404.php"><i class="fas fa-tv me-1"></i> Platform Filmleri</a>
-            <a href="404.php"><i class="fas fa-clock me-1"></i> Son Çıkanlar</a>
-            <a href="404.php"><i class="fas fa-fire me-1"></i> Haftanın Popülerleri</a>
-            <a href="movies.php"><i class="fas fa-layer-group me-1"></i> Tüm Filmler</a>
-        </div>
-    </div>
-
-    <div class="container pb-5" style="min-height: 600px;">
+    <div class="container pb-5" style="min-height: 800px;">
         
-        <h2 class="section-title">
-            Vizyondaki Filmler 
-            <a href="movies.php" class="btn btn-outline-primary btn-sm rounded-pill px-3" style="font-size: 12px;">Tümünü Gör</a>
-        </h2>
+        <div class="d-flex align-items-center justify-content-between mt-4 mb-4 border-bottom pb-3 border-secondary">
+            <h2 class="section-title mb-0">
+                <i class="fas fa-film me-2"></i>Tüm Film Arşivi
+            </h2>
+            <span class="text-muted small">Toplam <?php echo count($all_movies); ?> film listeleniyor</span>
+        </div>
         
         <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
-            <?php if(empty($vizyondakiler)): ?>
-                <div class="col-12"><p class="text-muted">Henüz film eklenmemiş.</p></div>
+            <?php if(empty($all_movies)): ?>
+                <div class="col-12 text-center py-5">
+                    <i class="fas fa-video-slash fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">Veritabanında henüz hiç film yok.</p>
+                </div>
             <?php else: ?>
-                <?php foreach($vizyondakiler as $movie): ?>
+                <?php foreach($all_movies as $movie): ?>
                 <div class="col">
                     
-                    <div class="movie-card position-relative">
+                    <div class="movie-card position-relative h-100">
                         
                         <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
                             <a href="javascript:void(0);" 
                                class="admin-delete-btn"
                                onclick="return confirmDelete('delete_movie.php?id=<?php echo $movie['movie_id']; ?>');"
+                               style="z-index: 10;"
                                title="Filmi Sil">
                                 <i class="fas fa-trash-alt"></i>
                             </a>
@@ -122,55 +105,20 @@ catch(PDOException $e) {
                         <a href="detay.php?id=<?php echo $movie['movie_id']; ?>" class="text-decoration-none d-block">
                             <div class="movie-poster">
                                 <img src="<?php echo $movie['image_url']; ?>" alt="<?php echo htmlspecialchars($movie['title']); ?>">
-                            </div>
-                            <div class="movie-title"><?php echo htmlspecialchars($movie['title']); ?></div>
-                            <div class="movie-info"><?php echo htmlspecialchars($movie['category']); ?></div>
-                        </a>
-                    </div>
-
-                </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-
-        <h2 class="section-title mt-5">
-            Yakında Sinemalarda
-            <span class="badge bg-danger rounded-pill fs-6 ms-2">Yeni</span>
-        </h2>
-        
-        <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
-            <?php if(empty($yakindakiler)): ?>
-                <div class="col-12"><p class="text-muted">Yakında gelecek film bulunamadı.</p></div>
-            <?php else: ?>
-                <?php foreach($yakindakiler as $movie): ?>
-                <div class="col">
-                    
-                    <div class="movie-card position-relative opacity-75"> 
-                        
-                        <?php if(isset($_SESSION['role']) && $_SESSION['role'] === 'admin'): ?>
-                            <a href="javascript:void(0);" 
-                               class="admin-delete-btn"
-                               onclick="return confirmDelete('delete_movie.php?id=<?php echo $movie['movie_id']; ?>');">
-                                <i class="fas fa-trash-alt"></i>
-                            </a>
-                        <?php endif; ?>
-                        
-                        <a href="detay.php?id=<?php echo $movie['movie_id']; ?>" class="text-decoration-none d-block">
-                            <div class="movie-poster">
-                                <img src="<?php echo $movie['image_url']; ?>" alt="<?php echo htmlspecialchars($movie['title']); ?>">
-                                <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 small rounded-start" style="font-size: 10px;">YAKINDA</div>
-                            </div>
-                            <div class="movie-title"><?php echo htmlspecialchars($movie['title']); ?></div>
-                            
-                            <div class="movie-info fw-bold <?php echo (!empty($movie['release_date']) && $movie['release_date'] !== '0000-00-00') ? 'text-primary' : 'text-danger'; ?>" style="font-size: 0.85rem;">
-                                <?php if (!empty($movie['release_date']) && $movie['release_date'] !== '0000-00-00'): ?>
-                                    <i class="far fa-calendar-alt me-1"></i>
-                                    <?php echo date("d.m.Y", strtotime($movie['release_date'])); ?>
+                                
+                                <?php if($movie['status'] == 1): ?>
+                                    <div class="position-absolute top-0 end-0 bg-success text-white px-2 py-1 small rounded-start" style="font-size: 10px; font-weight:bold;">VİZYONDA</div>
                                 <?php else: ?>
-                                    Tarih Bekleniyor
+                                    <div class="position-absolute top-0 end-0 bg-warning text-dark px-2 py-1 small rounded-start" style="font-size: 10px; font-weight:bold;">YAKINDA</div>
                                 <?php endif; ?>
                             </div>
 
+                            <div class="movie-title mt-2"><?php echo htmlspecialchars($movie['title']); ?></div>
+                            
+                            <div class="movie-info d-flex justify-content-between align-items-center">
+                                <span class="text-truncate" style="max-width: 70%;"><?php echo htmlspecialchars($movie['category']); ?></span>
+                                <span><?php echo $movie['release_year']; ?></span>
+                            </div>
                         </a>
                     </div>
 
@@ -181,7 +129,7 @@ catch(PDOException $e) {
 
     </div>
 
-    <footer>
+    <footer class="mt-5">
         <div class="container">
             <div class="row justify-content-between">
                 <div class="col-md-5 mb-3">
@@ -192,7 +140,7 @@ catch(PDOException $e) {
                     <h5>Hızlı Erişim</h5>
                     <ul class="list-unstyled">
                         <li><a href="index.php">Anasayfa</a></li>
-                        <li><a href="#">Vizyondakiler</a></li>
+                        <li><a href="movies.php">Tüm Filmler</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3 mb-3">
@@ -215,10 +163,9 @@ catch(PDOException $e) {
         $(document).ready(function() {
             $("#search_text").keyup(function() {
                 let searchText = $(this).val();
-                
                 if (searchText != "") {
                     $.ajax({
-                        url: "ajax_search.php", 
+                        url: "ajax_search.php",
                         method: "POST",
                         data: { query: searchText },
                         success: function(response) {
@@ -231,17 +178,11 @@ catch(PDOException $e) {
                     $("#show-list").fadeOut();
                 }
             });
-
-            $(document).on('click', function() {
-                $("#show-list").fadeOut();
-            });
-            
-            $("#show-list").on('click', function(e) {
-                e.stopPropagation();
-            });
+            $(document).on('click', function() { $("#show-list").fadeOut(); });
+            $("#show-list").on('click', function(e) { e.stopPropagation(); });
         });
     </script>
-
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/js/main.js"></script>
 
@@ -251,7 +192,7 @@ catch(PDOException $e) {
         $s_text = addslashes($_SESSION['swal_text']); 
         $s_icon = $_SESSION['swal_icon'];
         
-        // Mesajı hafızadan sil (Flash mantığı)
+        // Mesajı hafızadan sil
         unset($_SESSION['swal_title']);
         unset($_SESSION['swal_text']);
         unset($_SESSION['swal_icon']);

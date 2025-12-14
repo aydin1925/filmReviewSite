@@ -126,7 +126,7 @@ $avatar_url = "https://ui-avatars.com/api/?name=$avatar_name&background=1e3a8a&c
             
             <div class="d-none d-md-block">
                 <!-- GÜNCELLEME: Ayarlar butonu geri eklendi -->
-                <a href="#" class="btn btn-outline-primary btn-sm rounded-pill me-2"><i class="fas fa-cog me-1"></i> Ayarlar</a>
+                <a href="404.php" class="btn btn-outline-primary btn-sm rounded-pill me-2"><i class="fas fa-cog me-1"></i> Ayarlar</a>
                 <a href="logout.php" class="btn btn-outline-danger btn-sm rounded-pill"><i class="fas fa-sign-out-alt me-1"></i> Çıkış</a>
             </div>
         </div>
@@ -154,7 +154,7 @@ $avatar_url = "https://ui-avatars.com/api/?name=$avatar_name&background=1e3a8a&c
 
                 <!-- Yan Menü Listesi -->
                 <div class="list-group custom-list-group">
-                    <a href="#" class="list-group-item list-group-item-action active d-flex justify-content-between align-items-center">
+                    <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
                         <span><i class="fas fa-user-circle me-2"></i> Profil Bilgileri</span>
                         <i class="fas fa-chevron-right small"></i>
                     </a>

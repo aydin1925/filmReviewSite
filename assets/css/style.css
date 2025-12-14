@@ -20,31 +20,61 @@ body {
 .custom-navbar { background-color: var(--ana-renk); padding: 12px 0; }
 .navbar-brand { font-weight: bold; font-size: 22px; color: white !important; }
 
-/* ARAMA KUTUSU DÜZELTMESİ */
-.search-input {
-    background-color: rgba(255, 255, 255, 0.1) !important; /* !important ile zorla */
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    color: white !important; /* Yazı rengi her durumda beyaz */
-    padding: 8px 15px; 
-    border-radius: 4px; 
-    font-size: 14px;
-    outline: none;
+/* ================================================================
+   🔥 ARAMA KUTUSU DÜZELTMESİ (KESİN ÇÖZÜM) 🔥
+   ================================================================
+*/
+
+/* 1. Normal Durum (Yükseklik Sabitlendi ve ID Eklendi) */
+#search_text, 
+input.search-input {
+    background-color: rgba(255, 255, 255, 0.1) !important; /* Şeffaf zemin */
+    border: 1px solid rgba(255, 255, 255, 0.3) !important; /* İnce kenarlık */
+    color: #ffffff !important; /* Yazı rengi BEYAZ */
+    border-radius: 20px !important; /* Tam yuvarlak (Hap şeklinde) */
+    
+    /* YÜKSEKLİK VE BOŞLUK AYARLARI (Uzamayı Önler) */
+    height: 38px !important; /* Bootstrap standart yüksekliği */
+    padding: 0 15px !important; /* İç boşluğu sıfırla, yükseklik yeterli */
+    font-size: 14px !important;
+    line-height: 38px !important; /* Yazıyı dikey ortala */
+    
+    box-shadow: none !important;
+    outline: none !important;
 }
 
-/* Placeholder (İpucu yazısı) rengi */
-.search-input::placeholder { color: rgba(255,255,255,0.6) !important; }
-
-/* Tıklayınca (Focus) Ne Olsun? */
-.search-input:focus { 
-    background-color: rgba(255, 255, 255, 0.2) !important; /* Beyaz yapma, şeffaf kalsın */
-    color: white !important; /* Yazı rengi koyu olmasın */
-    box-shadow: none !important; /* Bootstrap gölgesini kaldır */
-    border-color: rgba(255,255,255,0.5) !important;
+/* 2. Tıklanma (Focus) Durumu - BEYAZ OLMAYACAK */
+#search_text:focus, 
+input.search-input:focus { 
+    background-color: rgba(255, 255, 255, 0.2) !important; /* Tıklayınca hafif aydınlat ama şeffaf kal */
+    color: #ffffff !important; /* Yazı hala beyaz */
+    border-color: rgba(255,255,255,0.6) !important;
+    box-shadow: none !important; /* Bootstrap mavisini kapat */
 }
 
-/* Butonun rengini garantiye al */
-.btn i { color: white !important; }
+/* 3. Placeholder (İpucu Yazısı) Rengi */
+#search_text::placeholder, 
+input.search-input::placeholder { 
+    color: rgba(255,255,255,0.6) !important; 
+    opacity: 1;
+}
 
+/* 4. Tarayıcı Otomatik Doldurma (Autofill) Rengi Düzeltme */
+/* Chrome/Edge otomatik dolunca arka planı beyaz yapar, bunu engelliyoruz */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    /* Arka planı navbar rengiyle (#1e3a8a) aynı yapıyoruz */
+    -webkit-box-shadow: 0 0 0 30px var(--ana-renk) inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* 5. Arama Butonu İkonu */
+.custom-navbar .btn i { color: white !important; }
+
+/* --- NAVBAR İKONLARI --- */
 .nav-icon { color: white; font-size: 18px; margin-left: 15px; text-decoration: none; opacity: 0.8; transition: 0.3s; }
 .nav-icon:hover { opacity: 1; transform: scale(1.1); }
 
@@ -87,27 +117,30 @@ body {
 }
 .movie-info { font-size: 12px; color: var(--gri-metin); font-weight: 500; }
 
+/* Admin Silme Butonu (Poster Üzerinde) */
+.admin-delete-btn {
+    position: absolute; top: 10px; right: 10px; z-index: 10;
+    background-color: rgba(220, 53, 69, 0.9); color: white;
+    border: none; width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.3); text-decoration: none;
+}
+.admin-delete-btn:hover { background-color: #dc3545; transform: scale(1.1); color: white; }
+
 /* --- COMPACT FOOTER --- */
 footer {
-    background-color: var(--footer-bg);
-    color: #94a3b8;
-    margin-top: auto;
-    padding-top: 40px; /* Küçültüldü (Eskisi 70px) */
-    border-top: 3px solid var(--ana-renk); /* İnceltildi */
-    font-size: 13px; /* Genel yazı boyutu küçüldü */
+    background-color: var(--footer-bg); color: #94a3b8;
+    margin-top: auto; padding-top: 40px; 
+    border-top: 3px solid var(--ana-renk); font-size: 13px;
 }
-footer h5 {
-    color: white; font-weight: 700;
-    margin-bottom: 15px; /* Küçültüldü */
-    font-size: 16px;
-}
+footer h5 { color: white; font-weight: 700; margin-bottom: 15px; font-size: 16px; }
 footer a { color: #94a3b8; text-decoration: none; transition: 0.3s; display: block; margin-bottom: 6px; }
 footer a:hover { color: var(--vurgu-renk); padding-left: 3px; }
 
 .social-icon {
     display: inline-flex; justify-content: center; align-items: center;
-    width: 32px; height: 32px; /* İkonlar küçüldü */
-    border-radius: 6px; background: rgba(255,255,255,0.05); color: white;
+    width: 32px; height: 32px; border-radius: 6px; 
+    background: rgba(255,255,255,0.05); color: white;
     margin-right: 8px; transition: 0.3s; font-size: 14px;
 }
 .social-icon:hover { transform: translateY(-2px); }
@@ -116,338 +149,189 @@ footer a:hover { color: var(--vurgu-renk); padding-left: 3px; }
 .bg-mail:hover { background: var(--ana-renk); }
 
 .copyright {
-    background-color: rgba(0,0,0,0.3);
-    padding: 15px 0; /* Küçültüldü */
-    margin-top: 30px;
+    background-color: rgba(0,0,0,0.3); padding: 15px 0; margin-top: 30px;
     border-top: 1px solid rgba(255,255,255,0.05);
 }
 
-
-.admin-delete-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 10; /* Resmin ve linkin üzerinde dursun */
-    background-color: rgba(220, 53, 69, 0.9); /* Kırmızı transparan */
-    color: white;
-    border: none;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    text-decoration: none;
-}
-
-.admin-delete-btn:hover {
-    background-color: #dc3545; /* Tam kırmızı */
-    transform: scale(1.1); /* Hafif büyüme */
-    color: white;
-}
-
-
-/* --- DETAY SAYFASI ÖZEL TASARIMI --- */
-
-/* 1. Bulanık Arka Plan Alanı (Hero Section) */
+/* --- DETAY SAYFASI --- */
 .movie-hero {
-    position: relative;
-    background-size: cover;
-    background-position: center;
-    padding: 60px 0;
-    margin-bottom: 40px;
-    color: white;
-    /* Resmin üzerine koyu katman atıyoruz ki yazılar okunsun */
+    position: relative; background-size: cover; background-position: center;
+    padding: 60px 0; margin-bottom: 40px; color: white;
     box-shadow: inset 0 0 0 2000px rgba(15, 23, 42, 0.85); 
 }
-
-/* 2. Detay Posteri (Sol Taraf) */
 .detail-poster {
-    border-radius: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     border: 1px solid rgba(255,255,255,0.1);
 }
-
-/* 3. Film Bilgileri (Sağ Taraf) */
 .movie-meta-badge {
-    background-color: rgba(255,255,255,0.1);
-    padding: 5px 12px;
-    border-radius: 4px;
-    font-size: 13px;
-    margin-right: 10px;
-    color: #e2e8f0;
+    background-color: rgba(255,255,255,0.1); padding: 5px 12px;
+    border-radius: 4px; font-size: 13px; margin-right: 10px; color: #e2e8f0;
     border: 1px solid rgba(255,255,255,0.2);
 }
-
 .director-box {
-    margin-top: 20px;
-    padding-top: 20px;
+    margin-top: 20px; padding-top: 20px;
     border-top: 1px solid rgba(255,255,255,0.1);
 }
-
-/* 4. Puan Kutusu (Sinemalar.com Tarzı) */
 .rating-box {
-    background-color: var(--vurgu-renk); /* Parlak Mavi */
-    color: white;
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    background-color: var(--vurgu-renk); color: white;
+    width: 60px; height: 60px; border-radius: 12px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-weight: bold; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
 }
 .rating-score { font-size: 20px; line-height: 1; }
 .rating-max { font-size: 10px; opacity: 0.8; }
 
-/* 5. Yorumlar Bölümü */
 .comment-card {
-    background: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
-    border: 1px solid #e2e8f0;
+    background: white; border-radius: 8px;
+    padding: 20px; padding-bottom: 30px;
+    margin-bottom: 15px; border: 1px solid #e2e8f0;
+    position: relative;
 }
 .comment-user { font-weight: 700; color: var(--koyu-renk); margin-bottom: 5px; }
-.comment-date { font-size: 12px; color: #94a3b8; }
-
-/* PUANLAMA ALANI DÜZENLEMELERİ */
-
-/* 1. Sabit Genişlikli Puan Kutusu (Titremeyi Önler) */
-.fixed-rating-badge {
-    display: inline-block;
-    width: 60px; /* Sabit genişlik */
-    text-align: center; /* Ortala */
+.comment-date { 
+    font-size: 12px; color: #94a3b8; 
+    position: absolute; bottom: 10px; right: 15px;
+    font-size: 11px; color: #94a3b8; font-style: italic;
 }
+.fixed-rating-badge { display: inline-block; width: 60px; text-align: center; }
+.rating-container { display: flex; align-items: center; gap: 10px; }
 
+/* Yorum Silme/Düzenleme Butonları */
+.btn-delete-comment {
+    position: absolute; top: 15px; right: 15px;
+    color: #cbd5e1; font-size: 14px; background: none; border: none;
+    cursor: pointer; text-decoration: none; z-index: 10; padding: 5px;
+    transition: all 0.2s ease;
+}
+.btn-delete-comment:hover { color: #dc3545; transform: scale(1.2); }
 
-
-/* =========================================
-   PROFİL SAYFASI ÖZEL STİLLERİ
-   ========================================= */
-
-/* Profil Üst Kapak Alanı */
+/* --- PROFİL SAYFASI --- */
 .profile-header {
     background: linear-gradient(135deg, var(--ana-renk), var(--vurgu-renk));
-    height: 150px;
-    border-radius: 16px 16px 0 0;
-    position: relative;
-    margin-bottom: 60px; /* Avatar taşması için boşluk */
+    height: 150px; border-radius: 16px 16px 0 0;
+    position: relative; margin-bottom: 60px;
     box-shadow: 0 4px 20px rgba(30, 58, 138, 0.2);
 }
-
-/* Yuvarlak Avatar Resmi */
 .profile-avatar {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    border: 5px solid white;
-    position: absolute;
-    bottom: -50px;
-    left: 40px;
-    background-color: #fff;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    z-index: 2;
+    width: 120px; height: 120px; border-radius: 50%; border: 5px solid white;
+    position: absolute; bottom: -50px; left: 40px;
+    background-color: #fff; overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); z-index: 2;
 }
-.profile-avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* Profil Menüsü (Avatarın sağında kalan kısım) */
+.profile-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .profile-nav {
-    padding-left: 180px; /* Avatar'ın kapladığı yer kadar boşluk */
-    background: white;
-    border-radius: 0 0 16px 16px;
-    padding-top: 10px;
-    padding-bottom: 10px;
+    padding-left: 180px; background: white;
+    border-radius: 0 0 16px 16px; padding-top: 10px; padding-bottom: 10px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
-
-/* İstatistik Kutuları (Yorum Sayısı vb.) */
 .stat-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    transition: transform 0.2s;
-    height: 100%;
+    background: white; border-radius: 12px; padding: 20px;
+    text-align: center; border: 1px solid rgba(226, 232, 240, 0.8);
+    transition: transform 0.2s; height: 100%;
 }
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-    border-color: var(--vurgu-renk);
-}
-.stat-number {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--ana-renk);
-    line-height: 1;
-    margin-bottom: 5px;
-}
-.stat-label {
-    font-size: 12px;
-    color: var(--gri-metin);
-    text-transform: uppercase;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-}
+.stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); border-color: var(--vurgu-renk); }
+.stat-number { font-size: 28px; font-weight: 800; color: var(--ana-renk); line-height: 1; margin-bottom: 5px; }
+.stat-label { font-size: 12px; color: var(--gri-metin); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
 
-/* Liste Grubu Özelleştirme */
 .custom-list-group .list-group-item {
-    border: none;
-    margin-bottom: 10px;
-    border-radius: 8px !important;
-    background: white;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    transition: 0.2s;
+    border: none; margin-bottom: 10px; border-radius: 8px !important;
+    background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: 0.2s;
 }
-.custom-list-group .list-group-item:hover {
-    background-color: #f8fafc;
-    transform: translateX(5px);
-}
+.custom-list-group .list-group-item:hover { background-color: #f8fafc; transform: translateX(5px); }
 
+/* Profil Buton Renkleri (Görünürlük Düzeltmesi) */
+.btn-outline-primary i { color: var(--vurgu-renk) !important; }
+.btn-outline-primary:hover i { color: white !important; }
+.btn-outline-danger i { color: #dc3545 !important; }
+.btn-outline-danger:hover i { color: white !important; }
 
-/* =========================================
-   404 & HATA SAYFALARI
-   ========================================= */
-
+/* --- 404 & HATA --- */
 .error-section {
-    min-height: 70vh; /* Ekranı kaplasın ama footer görünsün */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
+    min-height: 70vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    position: relative; overflow: hidden;
 }
-
-/* Arka planda dönen film şeridi efekti */
 .film-strip-bg {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) rotate(-5deg);
-    width: 120%;
-    height: 150px;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-5deg);
+    width: 120%; height: 150px;
     background-image: linear-gradient(90deg, #000 50%, transparent 50%), linear-gradient(90deg, #000 50%, transparent 50%);
-    background-size: 50px 100%;
-    opacity: 0.03;
-    z-index: -1;
+    background-size: 50px 100%; opacity: 0.03; z-index: -1;
 }
-
 .error-code {
-    font-size: 150px;
-    font-weight: 900;
-    line-height: 1;
-    /* Metni gradyan yapma (Mühendis İşi) */
+    font-size: 150px; font-weight: 900; line-height: 1;
     background: linear-gradient(135deg, var(--ana-renk), var(--vurgu-renk));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 0;
-    position: relative;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 0; position: relative;
 }
-
-/* Hata kodunun üzerindeki ikon (Klaket vb.) */
 .error-icon-overlay {
-    position: absolute;
-    top: -40px;
-    right: -20px;
-    font-size: 80px;
-    color: var(--koyu-renk);
-    opacity: 0.1;
-    transform: rotate(15deg);
+    position: absolute; top: -40px; right: -20px; font-size: 80px;
+    color: var(--koyu-renk); opacity: 0.1; transform: rotate(15deg);
 }
+.error-title { font-size: 32px; font-weight: 800; color: var(--koyu-renk); margin-top: 20px; }
+.error-desc { color: var(--gri-metin); max-width: 500px; margin: 10px auto 30px auto; font-size: 18px; }
 
-.error-title {
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--koyu-renk);
-    margin-top: 20px;
+/* --- BİLDİRİM & GİRİŞ --- */
+body.alert-page, body.login-page {
+    background-color: var(--arka-plan); height: 100vh;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
 }
-
-.error-desc {
-    color: var(--gri-metin);
-    max-width: 500px;
-    margin: 10px auto 30px auto;
-    font-size: 18px;
-}
-
-/* Bildirim Sayfası Arka Planı */
-body.alert-page {
-    background-color: #f1f5f9;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
 .alert-card {
-    background: white;
-    padding: 40px;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-    text-align: center;
-    max-width: 400px;
-    width: 90%;
+    background: white; padding: 40px; border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center;
+    max-width: 400px; width: 90%;
     animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border-top: 5px solid var(--ana-renk); /* Varsayılan renk */
+    border-top: 5px solid var(--ana-renk);
 }
+@keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-/* Animasyon: Kutu ekrana zıplayarak gelir */
-@keyframes popIn { 
-    from { transform: scale(0.8); opacity: 0; } 
-    to { transform: scale(1); opacity: 1; } 
-}
-
-.alert-icon-box {
-    font-size: 60px;
-    margin-bottom: 20px;
-}
-
-.alert-title {
-    font-weight: 800;
-    color: var(--koyu-renk);
-    margin-bottom: 10px;
-}
-
-.alert-message {
-    color: var(--gri-metin);
-    margin-bottom: 30px;
-    font-size: 15px;
-    line-height: 1.5;
-}
-
-/* Duruma Göre Renkler (PHP ile eklenecek sınıflar) */
+.alert-icon-box { font-size: 60px; margin-bottom: 20px; }
+.alert-title { font-weight: 800; color: var(--koyu-renk); margin-bottom: 10px; }
+.alert-message { color: var(--gri-metin); margin-bottom: 30px; font-size: 15px; line-height: 1.5; }
 .alert-success { border-color: #198754; }
 .alert-success .alert-icon-box { color: #198754; }
 .alert-success .btn-alert { background-color: #198754; }
-
 .alert-error { border-color: #dc3545; }
 .alert-error .alert-icon-box { color: #dc3545; }
 .alert-error .btn-alert { background-color: #dc3545; }
 
 .btn-alert {
-    color: white;
-    border: none;
-    padding: 12px 40px;
-    border-radius: 30px;
-    font-weight: 700;
-    transition: 0.2s;
-    text-decoration: none;
-    display: inline-block;
+    color: white; border: none; padding: 12px 40px;
+    border-radius: 30px; font-weight: 700;
+    transition: 0.2s; text-decoration: none; display: inline-block; cursor: pointer;
 }
-.btn-alert:hover {
-    opacity: 0.9;
-    transform: translateY(-2px);
-    color: white;
+.btn-alert:hover { opacity: 0.9; transform: translateY(-2px); color: white; }
+
+/* 3D Giriş Kartı */
+.auth-scene { width: 400px; height: 550px; perspective: 1000px; margin: 0 auto; position: relative; z-index: 10; }
+.card-3d-wrapper {
+    width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
+    transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.card-face {
+    position: absolute; width: 100%; height: 100%;
+    -webkit-backface-visibility: hidden; backface-visibility: hidden;
+    border-radius: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    background-color: white; padding: 40px 30px;
+    display: flex; flex-direction: column; justify-content: center;
+}
+.card-back { transform: rotateY(180deg); }
+.card-3d-wrapper.is-flipped { transform: rotateY(180deg); }
+
+.switch-wrap { position: absolute; top: -50px; left: 0; right: 0; text-align: center; z-index: 20; }
+.switch-btn {
+    background: rgba(30, 58, 138, 0.2); border: none; padding: 10px 30px;
+    border-radius: 30px; font-weight: 700; color: var(--ana-renk);
+    cursor: pointer; margin: 0 10px; transition: all 0.3s ease; opacity: 0.6;
+}
+.switch-btn.active {
+    background-color: var(--ana-renk); color: white;
+    box-shadow: 0 4px 15px rgba(30, 58, 138, 0.4); opacity: 1; transform: scale(1.05);
+}
+.auth-title { font-weight: 800; color: var(--ana-renk); text-align: center; margin-bottom: 5px; }
+.auth-subtitle { text-align: center; color: var(--gri-metin); font-size: 14px; margin-bottom: 30px; }
+
+.bg-shape {
+    position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: -1;
+    background: linear-gradient(135deg, var(--ana-renk) 0%, var(--vurgu-renk) 100%);
+    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 80%);
 }

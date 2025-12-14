@@ -1,39 +1,44 @@
 <?php
-
-// oturum açılmış mı bunun kontrolünü yapıyorum
+// Oturumu başlat
 session_start();
 
-// veritabanını çağırıyorum
-
+// Veritabanı bağlantısı
 require_once 'config/db.php';
 
-if(!isset($_SESSION['user_id']) || $_SESSION['role'] != 'admin') {
-    die('Yetkisiz erişim teşebbüsü!');
+// 1. GÜVENLİK KONTROLÜ
+// Kullanıcı giriş yapmamışsa veya Admin değilse ana sayfaya at
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    show_result("Yetkisiz erişim!", "error", "index.php");
+    exit;
 }
 
-if(isset($_GET['id'])) {
+// 2. ID KONTROLÜ VE SİLME İŞLEMİ
+if (isset($_GET['id'])) {
+    
     $movie_id = intval($_GET['id']);
 
     try {
-    
+        // PDO ile silme sorgusu
         $sql = $db->prepare("DELETE FROM movies WHERE movie_id = :id");
-        $sonuc = $sql->execute(['id' => $movie_id]);
+        $delete = $sql->execute(['id' => $movie_id]);
 
-        if($sonuc) {
-            echo "<script>alert('Film başarıyla silindi!'); window.location.href='index.php'; </script>";
-        }
-        else {
-            die('Silme işlemi başarısız oldu!');
+        if ($delete) {
+            // BAŞARILI: Mesajı kur ve index.php'ye geri gönder
+            // show_result fonksiyonu db.php içinde tanımlıydı,
+            // Session'a veriyi yazar ve header() ile yönlendirir.
+            show_result("Film başarıyla silindi.", "success", "index.php");
+        } else {
+            // Veritabanı sildi diyemedi (0 satır etkilendi vs.)
+            show_result("Silme işlemi sırasında bir sorun oluştu.", "error", "index.php");
         }
 
+    } catch (PDOException $e) {
+        // SQL Hatası
+        show_result("Hata: " . $e->getMessage(), "error", "index.php");
     }
-    catch(PDOException $e) {
-        die("Kullanıcı silinemedi: " . $e->getMessage());
-    }
+
+} else {
+    // ID gönderilmemişse
+    show_result("Geçersiz film ID'si.", "error", "index.php");
 }
-else {
-    // EĞER ID YOKSA (Doğrudan erişim)
-    // Kullanıcıyı anasayfaya geri fırlat
-    header("Location: index.php");
-    exit;
-}
+?>

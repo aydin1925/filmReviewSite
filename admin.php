@@ -1,15 +1,79 @@
 <?php
-session_start();
+// Veritabanı ve oturum ayarlarını dahil et
+include 'config/db.php';
 
-
+// 1. GÜVENLİK KONTROLÜ
 if (!isset($_SESSION['user_id'])) {
     header("Location: login_register.php");
     exit;
 }
 
-// 2. Giriş yapmış ama ADMIN değilse
-if ($_SESSION['role'] !== 'admin') {
+// 2. YETKİ KONTROLÜ
+if (isset($_SESSION['role']) && $_SESSION['role'] !== 'admin') {
     show_result("Bu sayfaya erişim yetkiniz yok! Ana sayfaya yönlendiriliyorsunuz...", "error", "index.php");
+}
+
+// 3. FORM İŞLEME (PDO İLE)
+if (isset($_POST['add_movie'])) {
+
+    // A. Verileri Hazırla
+    $title        = trim($_POST['title']);
+    $director     = trim($_POST['director']);
+    $description  = trim($_POST['description']);
+    $cast         = trim($_POST['cast']);
+    $image_url    = trim($_POST['image_url']);
+    
+    // Vizyon Tarihi (Veritabanında sütun açtığını varsayıyoruz)
+    $release_date = !empty($_POST['release_date']) ? $_POST['release_date'] : null;
+
+    // Sayısal veriler
+    $release_year = intval($_POST['release_year']);
+    $duration     = isset($_POST['duration']) ? intval($_POST['duration']) : 0;
+    $status       = intval($_POST['status']);
+
+    // B. Kategori İşleme (Array -> String)
+    if (isset($_POST['category']) && is_array($_POST['category'])) {
+        $category = implode(', ', $_POST['category']);
+    } else {
+        $category = "Genel";
+    }
+
+    try {
+        // C. SQL Sorgusu
+        $sql = "INSERT INTO movies (
+                    title, description, director, release_year, cast, 
+                    image_url, category, status, release_date, duration
+                ) VALUES (
+                    :title, :description, :director, :release_year, :cast, 
+                    :image_url, :category, :status, :release_date, :duration
+                )";
+
+        // Sorguyu hazırla
+        $stmt = $db->prepare($sql);
+
+        // D. Verileri Eşleştir ve Çalıştır
+        $result = $stmt->execute([
+            ':title'        => $title,
+            ':description'  => $description,
+            ':director'     => $director,
+            ':release_year' => $release_year,
+            ':cast'         => $cast,
+            ':image_url'    => $image_url,
+            ':category'     => $category,
+            ':status'       => $status,
+            ':release_date' => $release_date,
+            ':duration'     => $duration
+        ]);
+
+        if ($result) {
+            // Başarılı
+            show_result("Film başarıyla eklendi!", "success", "admin.php");
+        }
+
+    } catch (PDOException $e) {
+        // Hata durumunda
+        show_result("Veritabanı Hatası: " . $e->getMessage(), "error", "admin.php");
+    }
 }
 ?>
 
@@ -20,17 +84,13 @@ if ($_SESSION['role'] !== 'admin') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Film Ekle - Yönetim Paneli</title>
     
-    <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Özel CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="bg-light">
 
-    <!-- NAVBAR (Basitleştirilmiş Admin Menüsü) -->
     <nav class="custom-navbar mb-4">
         <div class="container d-flex align-items-center justify-content-between">
             <a class="navbar-brand" href="index.php">
@@ -45,7 +105,6 @@ if ($_SESSION['role'] !== 'admin') {
     <div class="container pb-5">
         <div class="row">
             
-            <!-- SOL: FORM ALANI -->
             <div class="col-lg-8">
                 <div class="card border-0 shadow-sm">
                     <div class="card-header bg-white border-0 py-3">
@@ -53,22 +112,23 @@ if ($_SESSION['role'] !== 'admin') {
                     </div>
                     <div class="card-body p-4">
                         
-                        <!-- Form nereye gidecek? create_movie.php -->
-                        <form action="create_movie.php" method="POST">
+                        <form action="admin.php" method="POST">
                             
-                            <!-- Başlık ve Yıl -->
                             <div class="row mb-3">
-                                <div class="col-md-8">
+                                <div class="col-md-6">
                                     <label class="form-label text-muted small fw-bold">FİLM BAŞLIĞI</label>
-                                    <input type="text" name="title" class="form-control" placeholder="Örn: Inception" required>
+                                    <input type="text" name="title" id="titleInput" class="form-control" placeholder="Örn: Inception" required oninput="updatePreviewText()">
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label class="form-label text-muted small fw-bold">YAPIM YILI</label>
-                                    <input type="number" name="release_year" class="form-control" placeholder="2024" required>
+                                    <input type="number" name="release_year" id="yearInput" class="form-control" placeholder="2024" required oninput="updatePreviewText()">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label text-muted small fw-bold">SÜRE (DK)</label>
+                                    <input type="number" name="duration" class="form-control" placeholder="120">
                                 </div>
                             </div>
 
-                            <!-- DURUM ve TARİH (YENİ EKLENDİ) -->
                             <div class="row mb-3 p-3 bg-light rounded mx-0 border">
                                 <div class="col-md-6">
                                     <label class="form-label text-muted small fw-bold">VİZYON DURUMU</label>
@@ -85,23 +145,20 @@ if ($_SESSION['role'] !== 'admin') {
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label text-muted small fw-bold">VİZYON TARİHİ</label>
-                                    <!-- Yakında seçilirse aktif olacak -->
                                     <input type="date" name="release_date" id="releaseDateInput" class="form-control" disabled>
                                 </div>
                             </div>
 
-                            <!-- Kategori (Çoklu Seçim - Checkbox) -->
                             <div class="mb-3">
                                 <label class="form-label text-muted small fw-bold">KATEGORİLER (Birden fazla seçilebilir)</label>
                                 <div class="card p-3 border-light bg-light">
                                     <div class="row row-cols-2 row-cols-md-3 g-2">
-                                        <!-- category[] dizisi olarak gönderilecek -->
-                                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" name="category[]" value="Bilim Kurgu" id="cat1"><label class="form-check-label" for="cat1">Bilim Kurgu</label></div></div>
-                                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" name="category[]" value="Aksiyon" id="cat2"><label class="form-check-label" for="cat2">Aksiyon</label></div></div>
-                                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" name="category[]" value="Dram" id="cat3"><label class="form-check-label" for="cat3">Dram</label></div></div>
-                                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" name="category[]" value="Komedi" id="cat4"><label class="form-check-label" for="cat4">Komedi</label></div></div>
-                                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" name="category[]" value="Korku" id="cat5"><label class="form-check-label" for="cat5">Korku</label></div></div>
-                                        <div class="col"><div class="form-check"><input class="form-check-input" type="checkbox" name="category[]" value="Macera" id="cat6"><label class="form-check-label" for="cat6">Macera</label></div></div>
+                                        <div class="col"><div class="form-check"><input class="form-check-input category-check" type="checkbox" name="category[]" value="Bilim Kurgu" id="cat1" onchange="updatePreviewText()"><label class="form-check-label" for="cat1">Bilim Kurgu</label></div></div>
+                                        <div class="col"><div class="form-check"><input class="form-check-input category-check" type="checkbox" name="category[]" value="Aksiyon" id="cat2" onchange="updatePreviewText()"><label class="form-check-label" for="cat2">Aksiyon</label></div></div>
+                                        <div class="col"><div class="form-check"><input class="form-check-input category-check" type="checkbox" name="category[]" value="Dram" id="cat3" onchange="updatePreviewText()"><label class="form-check-label" for="cat3">Dram</label></div></div>
+                                        <div class="col"><div class="form-check"><input class="form-check-input category-check" type="checkbox" name="category[]" value="Komedi" id="cat4" onchange="updatePreviewText()"><label class="form-check-label" for="cat4">Komedi</label></div></div>
+                                        <div class="col"><div class="form-check"><input class="form-check-input category-check" type="checkbox" name="category[]" value="Korku" id="cat5" onchange="updatePreviewText()"><label class="form-check-label" for="cat5">Korku</label></div></div>
+                                        <div class="col"><div class="form-check"><input class="form-check-input category-check" type="checkbox" name="category[]" value="Macera" id="cat6" onchange="updatePreviewText()"><label class="form-check-label" for="cat6">Macera</label></div></div>
                                     </div>
                                 </div>
                             </div>
@@ -111,7 +168,6 @@ if ($_SESSION['role'] !== 'admin') {
                                 <input type="text" name="director" class="form-control" placeholder="Örn: Christopher Nolan">
                             </div>
 
-                            <!-- Resim URL -->
                             <div class="mb-3">
                                 <label class="form-label text-muted small fw-bold">AFİŞ RESMİ (URL)</label>
                                 <div class="input-group">
@@ -121,13 +177,11 @@ if ($_SESSION['role'] !== 'admin') {
                                 <div class="form-text">TMDB veya IMDb'den görsel bağlantısı yapıştırın.</div>
                             </div>
 
-                            <!-- Konu -->
                             <div class="mb-3">
                                 <label class="form-label text-muted small fw-bold">FİLM KONUSU</label>
                                 <textarea name="description" class="form-control" rows="4" placeholder="Filmin özeti..." style="resize: none;"></textarea>
                             </div>
 
-                            <!-- Oyuncular -->
                             <div class="mb-4">
                                 <label class="form-label text-muted small fw-bold">OYUNCULAR</label>
                                 <input type="text" name="cast" class="form-control" placeholder="Leonardo DiCaprio, Joseph Gordon-Levitt...">
@@ -137,7 +191,7 @@ if ($_SESSION['role'] !== 'admin') {
 
                             <div class="d-flex justify-content-end gap-2">
                                 <button type="reset" class="btn btn-light text-muted">Temizle</button>
-                                <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Filmi Kaydet</button>
+                                <button type="submit" name="add_movie" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i>Filmi Kaydet</button>
                             </div>
 
                         </form>
@@ -145,7 +199,6 @@ if ($_SESSION['role'] !== 'admin') {
                 </div>
             </div>
 
-            <!-- SAĞ: CANLI ÖNİZLEME -->
             <div class="col-lg-4 mt-4 mt-lg-0">
                 <h6 class="text-muted text-uppercase small fw-bold mb-3">Önizleme</h6>
                 
@@ -155,8 +208,8 @@ if ($_SESSION['role'] !== 'admin') {
                         <i id="imgIcon" class="fas fa-image fa-3x opacity-25"></i>
                     </div>
                     <div class="card-body">
-                        <h6 class="card-title fw-bold text-dark mb-1">Film Başlığı</h6>
-                        <small class="text-muted">Kategori • Yıl</small>
+                        <h6 class="card-title fw-bold text-dark mb-1" id="previewTitle">Film Başlığı</h6>
+                        <small class="text-muted" id="previewMeta">Kategori • Yıl</small>
                     </div>
                 </div>
 
@@ -169,14 +222,12 @@ if ($_SESSION['role'] !== 'admin') {
         </div>
     </div>
 
-    <!-- FOOTER: Beyaz arka plan kaldırıldı, ana stil dosyasındaki koyu tema geçerli olacak -->
     <footer class="mt-auto py-3">
         <div class="container text-center">
             <span class="small" style="color: #94a3b8;">&copy; 2025 FilmFlux Admin Paneli</span>
         </div>
     </footer>
 
-    <!-- JS: Canlı Önizleme ve Tarih Kutusu Kontrolü -->
     <script>
         // Resim Önizleme
         function previewImage() {
@@ -195,7 +246,7 @@ if ($_SESSION['role'] !== 'admin') {
             }
         }
 
-        // Tarih Alanını Aç/Kapa
+        // Vizyon Tarihi Toggle
         function toggleDateInput(show) {
             const dateInput = document.getElementById('releaseDateInput');
             if (show) {
@@ -203,8 +254,33 @@ if ($_SESSION['role'] !== 'admin') {
                 dateInput.focus();
             } else {
                 dateInput.setAttribute('disabled', 'disabled');
-                dateInput.value = ''; // Kapatınca tarihi temizle
+                dateInput.value = ''; 
             }
+        }
+
+        // --- YENİ: Başlık, Yıl ve Kategori Canlı Güncelleme ---
+        function updatePreviewText() {
+            // 1. Verileri Al
+            let title = document.getElementById('titleInput').value;
+            let year = document.getElementById('yearInput').value;
+            
+            // Seçili kategorileri bul
+            let checkboxes = document.querySelectorAll('.category-check:checked');
+            let categories = [];
+            checkboxes.forEach((checkbox) => {
+                categories.push(checkbox.value);
+            });
+
+            // 2. Varsayılan Değerler (Eğer boşsa)
+            if (!title) title = "Film Başlığı";
+            if (!year) year = "Yıl";
+            
+            // Kategorileri birleştir
+            let catString = categories.length > 0 ? categories.join(', ') : "Kategori";
+
+            // 3. Ekrana Bas
+            document.getElementById('previewTitle').innerText = title;
+            document.getElementById('previewMeta').innerText = catString + " • " + year;
         }
     </script>
 
