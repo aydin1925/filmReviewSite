@@ -8,7 +8,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // DOCKER AYARI
 // docker-compose dosyasında servisin adına 'db' dedik, o yüzden host 'db' olmalı.
-$host = "db"; 
+$host = "filmflux_db_server"; 
 $kullanici = "root"; // compose dosyasında belirlediğimiz şifre
 $sifre = "root";
 $veritabani = "filmflux_db";
