@@ -1,27 +1,25 @@
 <?php
 session_start();
+
 require_once 'config/db.php';
 
 $sonuclar = [];
 $arama_terimi = "";
 
-// Arama yapıldı mı kontrol et
+
 if (isset($_GET['q'])) {
     $arama_terimi = trim($_GET['q']);
     
     if (!empty($arama_terimi)) {
         try {
-            // Arama Sorgusu (Başlık veya Yönetmen)
-            $sql = "SELECT * FROM movies WHERE title LIKE :key OR director LIKE :key ORDER BY status DESC, release_year DESC";
-            $stmt = $db->prepare($sql);
-            $stmt->execute(['key' => "%$arama_terimi%"]);
-            $sonuclar = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $sql=$db->prepare("SELECT * FROM movies WHERE title LIKE :key OR director LIKE :key ORDER BY status DESC, release_year DESC");
+            $sql->execute(['key' => "%$arama_terimi%"]);
+            $sonuclar = $sql->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
             die("Arama hatası: " . $e->getMessage());
         }
     }
 } else {
-    // Eğer q yoksa anasayfaya at
     header("Location: index.php");
     exit;
 }
@@ -40,7 +38,7 @@ if (isset($_GET['q'])) {
 </head>
 <body>
 
-    <!-- NAVBAR (Aynen Kopyala) -->
+    <!-- NAVBAR -->
     <nav class="custom-navbar">
         <div class="container d-flex align-items-center justify-content-between">
             <a class="navbar-brand" href="index.php"><i class="fas fa-play-circle me-2 text-info"></i>FilmFlux</a>
@@ -98,7 +96,6 @@ if (isset($_GET['q'])) {
                         <a href="detay.php?id=<?php echo $movie['movie_id']; ?>" class="text-decoration-none d-block">
                             <div class="movie-poster">
                                 <img src="<?php echo $movie['image_url']; ?>" alt="<?php echo htmlspecialchars($movie['title']); ?>">
-                                <!-- DURUM ETİKETİ (Senin istediğin özellik) -->
                                 <?php if($movie['status'] == 0): ?>
                                     <div class="position-absolute top-0 end-0 bg-danger text-white px-2 py-1 small rounded-start" style="font-size: 10px;">YAKINDA</div>
                                 <?php else: ?>

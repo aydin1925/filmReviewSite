@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # 1. PHP UYGULAMASI (FilmFlux)
+  app:
+    build: .
+    container_name: filmflux_app
+    ports:
+      - "80:80" # Tarayıcıda localhost yazınca bu çalışacak
+    volumes:
+      - .:/var/www/html # Kodda yaptığın değişikliği anında görmek için
+    depends_on:
+      - db
+    networks:
+      - filmflux_net
+
+  # 2. VERİTABANI (MySQL)
+  db:
+    image: mysql:8.0
+    container_name: filmflux_db_server
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: filmflux_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: userpass
+    volumes:
+      - db_data:/var/lib/mysql # Veriler silinmesin diye
+      # SQL dosyanı otomatik yüklemek için (Aşağıda açıklayacağım*)
+      - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - filmflux_net
+
+  # 3. PHPMYADMIN (Veritabanını yönetmek için)
+  pma:
+    image: phpmyadmin/phpmyadmin
+    container_name: filmflux_pma
+    environment:
+      PMA_HOST: db
+      PMA_USER: root
+      PMA_PASSWORD: root
+    ports:
+      - "8080:80" # localhost:8080 yazınca burası açılacak
+    depends_on:
+      - db
+    networks:
+      - filmflux_net
+
+networks:
+  filmflux_net:
+    driver: bridge
+
+volumes:
+  db_data:

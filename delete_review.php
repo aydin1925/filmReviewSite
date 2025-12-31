@@ -2,12 +2,11 @@
 session_start();
 require_once 'config/db.php';
 
-// 1. GÜVENLİK DUVARI: Giriş yapmamışsa durdur
 if (!isset($_SESSION['user_id'])) {
     show_result("Bu işlemi yapmak için giriş yapmalısınız!", "error", "login_register.php");
 }
 
-// 2. VERİLERİ AL (GET Metoduyla Linkten Gelir)
+
 if (isset($_GET['id']) && isset($_GET['movie_id'])) {
     
     $review_id = intval($_GET['id']);
@@ -21,7 +20,6 @@ if (isset($_GET['id']) && isset($_GET['movie_id'])) {
         $sql->execute(['id' => $review_id]);
         $review = $sql->fetch(PDO::FETCH_ASSOC);
 
-        // Yorum yoksa
         if (!$review) {
             show_result("Silinecek yorum bulunamadı.", "error", "detay.php?id=$movie_id");
         }
@@ -42,7 +40,6 @@ if (isset($_GET['id']) && isset($_GET['movie_id'])) {
             }
 
         } else {
-            // Yetkisiz silme girişimi
             show_result("Bu yorumu silme yetkiniz yok!", "error", "detay.php?id=$movie_id");
         }
 

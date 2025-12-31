@@ -2,9 +2,7 @@
 
 // oturum kontrolü yapıyorum
 // session_status kontrolü db.php içinde de var ama burada da olması zarar vermez
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
 // veritabanını çağırıyorum
 require_once 'config/db.php';
@@ -251,7 +249,6 @@ catch(PDOException $e) {
         $s_text = addslashes($_SESSION['swal_text']); 
         $s_icon = $_SESSION['swal_icon'];
         
-        // Mesajı hafızadan sil (Flash mantığı)
         unset($_SESSION['swal_title']);
         unset($_SESSION['swal_text']);
         unset($_SESSION['swal_icon']);

@@ -6,9 +6,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // veritabanı bağlantı ayarları
 
-$host = "localhost";
-$kullanici = "root";
-$sifre = "";
+// DOCKER AYARI
+// docker-compose dosyasında servisin adına 'db' dedik, o yüzden host 'db' olmalı.
+$host = "db"; 
+$kullanici = "root"; // compose dosyasında belirlediğimiz şifre
+$sifre = "root";
 $veritabani = "filmflux_db";
 
 $port = 3306;

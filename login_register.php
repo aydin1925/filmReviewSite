@@ -1,14 +1,12 @@
 <?php
-// 1. Oturumu Başlat
+
 session_start();
 
-// 2. Veritabanı ve Fonksiyonları Çağır
+
 require_once 'config/db.php';
 
-// 3. KONTROL: Zaten giriş yapmış mı?
+// Zaten giriş yapmış mı?
 if (isset($_SESSION['user_id'])) {
-    // Eğer giriş yapmışsa, bu sayfada işi yok. Anasayfaya gönderelim.
-    // show_result fonksiyonunu burada kullanabiliriz!
     show_result("Zaten giriş yapmış durumdasınız. Ana sayfaya yönlendiriliyorsunuz...", "success", "index.php");
 }
 ?>

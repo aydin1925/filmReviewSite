@@ -1,14 +1,14 @@
 <?php
-// Veritabanı ve oturum ayarlarını dahil et
-include 'config/db.php';
 
-// 1. GÜVENLİK KONTROLÜ
+session_start();
+
+require_once 'config/db.php';
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: login_register.php");
     exit;
 }
 
-// 2. YETKİ KONTROLÜ
 if (isset($_SESSION['role']) && $_SESSION['role'] !== 'admin') {
     show_result("Bu sayfaya erişim yetkiniz yok! Ana sayfaya yönlendiriliyorsunuz...", "error", "index.php");
 }
@@ -16,22 +16,16 @@ if (isset($_SESSION['role']) && $_SESSION['role'] !== 'admin') {
 // 3. FORM İŞLEME (PDO İLE)
 if (isset($_POST['add_movie'])) {
 
-    // A. Verileri Hazırla
-    $title        = trim($_POST['title']);
-    $director     = trim($_POST['director']);
-    $description  = trim($_POST['description']);
-    $cast         = trim($_POST['cast']);
-    $image_url    = trim($_POST['image_url']);
-    
-    // Vizyon Tarihi (Veritabanında sütun açtığını varsayıyoruz)
+    $title = trim($_POST['title']);
+    $director = trim($_POST['director']);
+    $description = trim($_POST['description']);
+    $cast = trim($_POST['cast']);
+    $image_url = trim($_POST['image_url']);
     $release_date = !empty($_POST['release_date']) ? $_POST['release_date'] : null;
-
-    // Sayısal veriler
     $release_year = intval($_POST['release_year']);
     $duration     = isset($_POST['duration']) ? intval($_POST['duration']) : 0;
     $status       = intval($_POST['status']);
 
-    // B. Kategori İşleme (Array -> String)
     if (isset($_POST['category']) && is_array($_POST['category'])) {
         $category = implode(', ', $_POST['category']);
     } else {
@@ -39,39 +33,33 @@ if (isset($_POST['add_movie'])) {
     }
 
     try {
-        // C. SQL Sorgusu
-        $sql = "INSERT INTO movies (
+        $sql = $db->prepare("INSERT INTO movies (
                     title, description, director, release_year, cast, 
                     image_url, category, status, release_date, duration
                 ) VALUES (
                     :title, :description, :director, :release_year, :cast, 
                     :image_url, :category, :status, :release_date, :duration
-                )";
-
-        // Sorguyu hazırla
-        $stmt = $db->prepare($sql);
+                )");
 
         // D. Verileri Eşleştir ve Çalıştır
-        $result = $stmt->execute([
-            ':title'        => $title,
-            ':description'  => $description,
-            ':director'     => $director,
+        $result = $sql->execute([
+            ':title' => $title,
+            ':description' => $description,
+            ':director' => $director,
             ':release_year' => $release_year,
-            ':cast'         => $cast,
-            ':image_url'    => $image_url,
-            ':category'     => $category,
-            ':status'       => $status,
+            ':cast' => $cast,
+            ':image_url' => $image_url,
+            ':category' => $category,
+            ':status' => $status,
             ':release_date' => $release_date,
-            ':duration'     => $duration
+            ':duration' => $duration
         ]);
 
         if ($result) {
-            // Başarılı
             show_result("Film başarıyla eklendi!", "success", "admin.php");
         }
 
     } catch (PDOException $e) {
-        // Hata durumunda
         show_result("Veritabanı Hatası: " . $e->getMessage(), "error", "admin.php");
     }
 }
@@ -121,11 +109,11 @@ if (isset($_POST['add_movie'])) {
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-muted small fw-bold">YAPIM YILI</label>
-                                    <input type="number" name="release_year" id="yearInput" class="form-control" placeholder="2024" required oninput="updatePreviewText()">
+                                    <input type="number" min="1900" name="release_year" id="yearInput" class="form-control" placeholder="2024" required oninput="updatePreviewText()">
                                 </div>
                                 <div class="col-md-3">
                                     <label class="form-label text-muted small fw-bold">SÜRE (DK)</label>
-                                    <input type="number" name="duration" class="form-control" placeholder="120">
+                                    <input type="number" min="1" name="duration" class="form-control" placeholder="120">
                                 </div>
                             </div>
 
@@ -229,7 +217,7 @@ if (isset($_POST['add_movie'])) {
     </footer>
 
     <script>
-        // Resim Önizleme
+        // Resim Önizleme fonksiyonu
         function previewImage() {
             const input = document.getElementById('imgInput');
             const preview = document.getElementById('imgPreview');
@@ -246,7 +234,7 @@ if (isset($_POST['add_movie'])) {
             }
         }
 
-        // Vizyon Tarihi Toggle
+
         function toggleDateInput(show) {
             const dateInput = document.getElementById('releaseDateInput');
             if (show) {
@@ -258,7 +246,6 @@ if (isset($_POST['add_movie'])) {
             }
         }
 
-        // --- YENİ: Başlık, Yıl ve Kategori Canlı Güncelleme ---
         function updatePreviewText() {
             // 1. Verileri Al
             let title = document.getElementById('titleInput').value;

@@ -1,10 +1,10 @@
 <?php
+
 session_start();
+
 require_once 'config/db.php';
 
-// --- HATA ÖNLEYİCİ: Varsayılan Değerler ---
-// Veritabanı bağlantısı koparsa veya veri gelmezse sayfa patlamasın diye
-// değişkenlerin içini boşaltıyoruz.
+
 $user = [];
 $stats = [
     'yorum_sayisi' => 0,
@@ -13,7 +13,6 @@ $stats = [
 $favorites = [];
 $my_reviews = [];
 
-// Güvenlik: Giriş yapmamışsa durdur
 if (!isset($_SESSION['user_id'])) {
     show_result("Profilinizi görüntülemek için önce giriş yapmalısınız.", "error", "login_register.php");
 }
@@ -27,48 +26,41 @@ try {
     $user_data = $sql->fetch(PDO::FETCH_ASSOC);
 
     if ($user_data) {
-        $user = $user_data; // Veri geldiyse ana değişkene aktar
+        $user = $user_data;
 
-        // 2. İSTATİSTİKLERİ ÇEK
-        // COUNT(*) -> Toplam Yorum
-        // SUM(...) -> 8.5 ve üzeri puanlar (Favori)
-        $sql_stats = "SELECT 
+        
+        $sql_stats = $db->prepare("SELECT 
                         COUNT(*) as yorum_sayisi, 
                         SUM(CASE WHEN rating >= 8.5 THEN 1 ELSE 0 END) as favori_sayisi 
-                      FROM reviews WHERE user_id = :id";
-        $stmt_stats = $db->prepare($sql_stats);
-        $stmt_stats->execute(['id' => $user_id]);
-        $fetched_stats = $stmt_stats->fetch(PDO::FETCH_ASSOC);
+                        FROM reviews WHERE user_id = :id");
+        $sql_stats->execute(['id' => $user_id]);
+        $fetched_stats = $sql_stats->fetch(PDO::FETCH_ASSOC);
         
         if ($fetched_stats) {
             $stats['yorum_sayisi'] = $fetched_stats['yorum_sayisi'] ?? 0;
             $stats['favori_sayisi'] = $fetched_stats['favori_sayisi'] ?? 0;
         }
 
-        // 3. FAVORİLERİ ÇEK (8.5 ve Üzeri)
-        $sql_fav = "SELECT m.movie_id, m.title, m.image_url, m.release_year, r.rating 
+        $sql_fav = $db->prepare("SELECT m.movie_id, m.title, m.image_url, m.release_year, r.rating 
                     FROM reviews r 
                     JOIN movies m ON r.movie_id = m.movie_id 
                     WHERE r.user_id = :id AND r.rating >= 8.5 
-                    ORDER BY r.rating DESC";
-        $stmt_fav = $db->prepare($sql_fav);
-        $stmt_fav->execute(['id' => $user_id]);
-        $favorites = $stmt_fav->fetchAll(PDO::FETCH_ASSOC);
+                    ORDER BY r.rating DESC");
+        $sql_fav->execute(['id' => $user_id]);
+        $favorites = $sql_fav->fetchAll(PDO::FETCH_ASSOC);
 
         // 4. YORUM GEÇMİŞİNİ ÇEK
-        $sql_reviews = "SELECT r.*, m.title 
+        $sql_reviews = $db->prepare("SELECT r.*, m.title 
                         FROM reviews r 
                         JOIN movies m ON r.movie_id = m.movie_id 
                         WHERE r.user_id = :id 
-                        ORDER BY r.created_at DESC";
-        $stmt_rev = $db->prepare($sql_reviews);
-        $stmt_rev->execute(['id' => $user_id]);
-        $my_reviews = $stmt_rev->fetchAll(PDO::FETCH_ASSOC);
+                        ORDER BY r.created_at DESC");
+        $sql_reviews->execute(['id' => $user_id]);
+        $my_reviews = $sql_reviews->fetchAll(PDO::FETCH_ASSOC);
     }
 
 } catch (PDOException $e) {
-    // Hata olursa sayfayı bozma, sadece mesaj göster (isteğe bağlı)
-    // echo "<div class='alert alert-danger'>Veri Hatası: " . $e->getMessage() . "</div>";
+    echo "<div class='alert alert-danger'>Veri Hatası: " . $e->getMessage() . "</div>";
 }
 
 // Avatar Oluşturma (İsimden)
@@ -98,7 +90,6 @@ $avatar_url = "https://ui-avatars.com/api/?name=$avatar_name&background=1e3a8a&c
             </a>
             
             <div class="d-flex align-items-center">
-                <!-- GÜNCELLEME: İstenilen orijinal yazı geri geldi -->
                 <a href="index.php" class="text-white text-decoration-none small opacity-75 hover-opacity-100 transition">
                     <i class="fas fa-arrow-left me-1"></i> Ana Sayfaya Dön
                 </a>

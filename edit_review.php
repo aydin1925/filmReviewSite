@@ -1,5 +1,6 @@
 <?php
 session_start();
+
 require_once 'config/db.php';
 
 // 1. GÜVENLİK
@@ -64,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// 3. FORM GÖSTERME (GET)
+
 if (!isset($_GET['id'])) {
     header("Location: index.php");
     exit;
@@ -72,14 +73,12 @@ if (!isset($_GET['id'])) {
 
 $review_id = intval($_GET['id']);
 
-// Filmin resmini ve başlığını da çekelim ki arka plan güzel olsun (JOIN)
-$sql_data = "SELECT r.*, m.title, m.image_url 
+$sql_data = $db->prepare("SELECT r.*, m.title, m.image_url 
              FROM reviews r 
              JOIN movies m ON r.movie_id = m.movie_id 
-             WHERE r.review_id = :rid";
-$stmt = $db->prepare($sql_data);
-$stmt->execute(['rid' => $review_id]);
-$review = $stmt->fetch(PDO::FETCH_ASSOC);
+             WHERE r.review_id = :rid");
+$sql_data->execute(['rid' => $review_id]);
+$review = $sql_data->fetch(PDO::FETCH_ASSOC);
 
 if (!$review) {
     show_result("Yorum bulunamadı.", "error", "index.php");

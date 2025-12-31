@@ -15,17 +15,16 @@ if(isset($_GET['id'])) {
         $sql = $db->prepare("SELECT * FROM movies WHERE movie_id = :id");
         $sql->execute(['id' => $movie_id]);
 
-        // veritabanında belirlediğim veriyi çekiyorum
-        // bu yazdığım kod çektiği veriyi 'film' adında bir diziye atıyor
+        
         $film = $sql->fetch(PDO::FETCH_ASSOC);
 
         // film geldi mi diye kontrol ediyorum
         if(!$film) {
-            // film yoksa anasayfaya geri gönderiyorum
+            
             show_result("Aradığınız film bulunamadı veya kaldırılmış.", "error", "index.php");
         }
 
-        // oyuncu değişkenlerini tutmak için bir dizi oluşturuyorum
+        
         $oyuncu_listesi = [];
 
         if(!empty($film['cast'])) {
@@ -53,7 +52,7 @@ if(isset($_GET['id'])) {
             $film_puani = '-';
         }
 
-        // 4. BENZER FİLMLERİ ÇEK (Aynı kategoriden, şu anki film hariç 4 tane)
+        
         $sql_benzer = "SELECT * FROM movies WHERE category = :cat AND movie_id != :id LIMIT 4";
         $stmt_benzer = $db->prepare($sql_benzer);
         $stmt_benzer->execute(['cat' => $film['category'], 'id' => $movie_id]);
@@ -148,7 +147,7 @@ else {
                             </div>
                         </div>
                         
-                        <!-- Puan Kutusu (CSS ile tasarladığımız) -->
+                        <!-- Puan Kutusu -->
                         <div class="rating-box">
                             <span class="rating-score"><?php echo $film_puani; ?></span>
                             <span class="rating-max">/10</span>
@@ -171,7 +170,7 @@ else {
                         <h6 class="text-uppercase text-white-50" style="font-size: 12px; letter-spacing: 1px;">Oyuncular</h6>
                         <span class="text-white-50">
                         <?php 
-                        // Dizi elemanlarını aralarına ' • ' koyerek birleştirip yazdırır
+                        // Dizi elemanlarını aralarına ' • ' koyarak birleştirip yazdırır
                         // Örn: Brad Pitt • Edward Norton
                         if (!empty($oyuncu_listesi)) {
                             echo implode(' • ', $oyuncu_listesi);
@@ -200,11 +199,8 @@ else {
                     <!-- FORM ETİKETİNİ AÇIYORUZ -->
                     <form action="submit_review.php" method="POST">
                         
-                        <!-- 1. GİZLİ VERİ: Hangi filme yorum yapıyoruz? -->
-                        <!-- Kullanıcı görmez ama arka plana movie_id göndeririz -->
                         <input type="hidden" name="movie_id" value="<?php echo $film['movie_id']; ?>">
 
-                        <!-- 2. PUAN SEÇİMİ (Backend bunu bekliyor) -->
                         <!-- PUAN SLIDER ALANI -->
                         <div class="mb-3">
                             
@@ -229,7 +225,6 @@ else {
                         </div>
 
                         <!-- 3. YORUM METNİ -->
-                        <!-- name="comment" ekledik -->
                         <textarea name="comment" class="form-control mb-2 bg-light border-0" style="resize: none;" rows="3" placeholder="Bu film hakkında ne düşünüyorsun?" required></textarea>
                         
                         <!-- 4. GÖNDER BUTONU -->
@@ -240,13 +235,11 @@ else {
                     </form>
                 </div>
 
-                <!-- Yorum Listesi (Döngü ile basıyoruz) -->
                 <?php if(empty($yorumlar)): ?>
                     <p class="text-muted fst-italic text-center py-3">Henüz bu filme yorum yapılmamış. İlk yorumu sen yap!</p>
                 <?php else: ?>
                     <?php foreach($yorumlar as $y): ?>
                     
-                    <!-- KART: position-relative ekledik ki buton sağ üste yapışabilsin -->
                     <div class="comment-card position-relative">
                         
                         <!-- 🛠️ İŞLEM BUTONLARI (Sadece Yetkili Görür) -->
@@ -258,7 +251,6 @@ else {
                             <div style="position: absolute; top: 15px; right: 15px; display:flex; gap:10px;">
                                 
                                 <!-- DÜZENLEME BUTONU (YENİ EKLENEN) -->
-                                <!-- Link: edit_review.php -->
                                 <a href="edit_review.php?id=<?php echo $y['review_id']; ?>" 
                                    class="text-secondary text-decoration-none" 
                                    title="Düzenle">
@@ -313,7 +305,6 @@ else {
                             <div class="w-100">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <h6 class="mb-0 text-dark text-truncate" style="max-width: 150px; font-size: 14px;"><?php echo htmlspecialchars($benzer['title']); ?></h6>
-                                    <!-- Eğer benzer filmin puanı yoksa gösterme -->
                                 </div>
                                 <small class="text-muted"><?php echo htmlspecialchars($benzer['category']); ?></small>
                             </div>

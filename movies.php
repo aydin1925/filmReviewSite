@@ -1,15 +1,12 @@
 <?php
 // Oturumu başlat
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+session_start();
 
 // Veritabanı bağlantısı
 require_once 'config/db.php';
 
-// Tüm filmleri çekiyoruz (En son eklenen en başta)
+
 try {
-    // Sadece status durumuna bakmadan hepsini çekiyoruz
     $sql = $db->prepare("SELECT * FROM movies ORDER BY movie_id DESC");
     $sql->execute();
     $all_movies = $sql->fetchAll(PDO::FETCH_ASSOC);
